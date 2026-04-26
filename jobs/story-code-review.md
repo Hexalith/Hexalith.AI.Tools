@@ -39,19 +39,19 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
 
 ## Pre-Flight Checks
 
-**Pre-flight is performed by an out-of-band script — `jobs/preflight-code-review.py`. The LLM does NOT perform the checks itself.** This rule exists because four consecutive false-positive aborts on 2026-04-25 demonstrated that the LLM will fabricate "evidence" of repository state it never observed (see annotations on rows 1–5 of the run log). The script's JSON result file is the only acceptable source of pre-flight pass/fail.
+**Pre-flight is performed by an out-of-band script — `Hexalith.AI.Tools/jobs/preflight-code-review.py`. The LLM does NOT perform the checks itself.** This rule exists because four consecutive false-positive aborts on 2026-04-25 demonstrated that the LLM will fabricate "evidence" of repository state it never observed (see annotations on rows 1–5 of the run log). The script's JSON result file is the only acceptable source of pre-flight pass/fail.
 
 ### Procedure (mandatory, in order)
 
-1. **Run the script.** Exactly this invocation, no substitutions:
+1. **Run the script against the application repository, not the tools submodule.** The tools repository is normally checked out as the `Hexalith.AI.Tools` submodule inside each application repository. Prefer running from the application repository root with:
 
    ```text
-   python jobs/preflight-code-review.py --latest
+   python Hexalith.AI.Tools/jobs/preflight-code-review.py --latest
    ```
 
-   The script writes a per-run JSON result to `_bmad-output/process-notes/preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error.
+   If the automation starts inside the `Hexalith.AI.Tools` submodule, the script auto-detects the nearest parent application repository containing `_bmad-output/implementation-artifacts/sprint-status.yaml`. If the job file is being run from a standalone tools checkout, use the same script with `--repo {application-repository-root}`. The script writes a per-run JSON result to `_bmad-output/process-notes/code-review-preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/code-review-preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error.
 
-2. **Read the result file.** Open `_bmad-output/process-notes/preflight-latest.json` with the file-read tool. Do not skip this step even if you "saw" the script's stdout — the JSON is the canonical record.
+2. **Read the result file.** Open `_bmad-output/process-notes/code-review-preflight-latest.json` with the file-read tool. Do not skip this step even if you "saw" the script's stdout — the JSON is the canonical record.
 
 3. **Verify check #5 (skill discoverability) yourself.** This is the one check the script cannot perform. Confirm the `bmad-code-review` skill responds to `/bmad-code-review` or natural-language invocation. If both forms refuse, treat pre-flight as failed and quote the refusal text verbatim into `notes`.
 
@@ -63,10 +63,10 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
 
 When pre-flight fails, the run-log row and structured output's `notes` field MUST contain:
 
-- The path of the JSON result file you read (e.g. `_bmad-output/process-notes/preflight-latest.json`).
+- The path of the JSON result file you read: `_bmad-output/process-notes/code-review-preflight-latest.json`.
 - The `timestamp` field copied verbatim from that JSON.
 - For each check whose `result == "fail"`: the check's `name` and its `details` field copied verbatim from the JSON.
-- For check #7 (working tree) failures specifically: also copy the verbatim `stdout` field of that check (the actual `git status --porcelain` output captured by the script).
+- For check #7 (working tree) failures specifically: also copy the verbatim `stdout` field of that check (the actual `git status --porcelain -- . ...` output captured by the script).
 
 You may NOT:
 
@@ -89,13 +89,13 @@ For reference (the script implements these — do not re-implement them yourself
    - `status == backlog` ⇒ no artifact must exist.
    - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
    - `status == blocked` exempt.
-7. Working tree cleanliness: `git status --porcelain` produces zero non-empty lines (the script's per-run pre-flight result files are gitignored and do not count).
+7. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files.
 
 The script never auto-repairs. A human must reconcile the YAML or the working tree before the next run.
 
 ### Per-run JSON result files
 
-The script writes `preflight-{ISO}.json` per run and overwrites `preflight-latest.json` on each `--latest` invocation. Both file patterns are gitignored. Do not commit them. Do not delete the per-run files manually — they are the audit trail for any disputed abort.
+The script writes `code-review-preflight-{ISO}.json` per run and overwrites `code-review-preflight-latest.json` on each `--latest` invocation. Do not commit these files. Do not delete the per-run files manually — they are the audit trail for any disputed abort.
 
 ## Story Artifact Resolution
 
@@ -276,7 +276,7 @@ When the selected operation is finished and all story artifacts, sprint-status u
 2. Stage and commit only files modified by this job: the story artifact(s), `sprint-status.yaml`, `deferred-work.md`, the run log, and any new files under `_bmad-output/implementation-artifacts/review-runs/{story-name}/`.
 3. Push the commit to the current branch.
 
-Do not mix unrelated user changes into the job commit. If unrelated changes are present (the working tree was clean at pre-flight, so any new unrelated content is suspicious), leave them untouched and report that only this job's changes were pushed.
+Do not stage or commit pre-flight JSON result files. Do not mix unrelated user changes into the job commit. If unrelated changes are present (the working tree was clean at pre-flight after excluding pre-flight audit JSON files, so any other new unrelated content is suspicious), leave them untouched and report that only this job's changes were pushed.
 
 ## Failure Handling
 
@@ -319,7 +319,7 @@ Short-message content:
   Examples of acceptable failed rows:
 
   - ``preflight #1 yaml parse: yaml.safe_load raised; cmd=`python -c "import yaml; yaml.safe_load(open('_bmad-output/implementation-artifacts/sprint-status.yaml'))"`; output=`yaml.scanner.ScannerError: while scanning a simple key ... line 111, col 17` ``
-  - ``preflight #7 working tree: 3 dirty paths; cmd=`git status --porcelain`; output=` M src/Foo.cs?? bar.tmp?? baz.log` ``
+  - ``preflight #7 working tree: 3 dirty paths; cmd=`git status --porcelain -- . :(exclude)_bmad-output/process-notes/preflight-*.json ...`; output=` M src/Foo.cs?? bar.tmp?? baz.log` ``
 
   A failed row that lacks `cmd=` or `output=` violates the spec. Reviewers may treat such rows as untrusted and a hint that the abort itself was hallucinated.
 

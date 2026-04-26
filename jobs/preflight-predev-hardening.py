@@ -1,20 +1,15 @@
 #!/usr/bin/env python3
-"""Pre-flight checks for the recurring story-code-review job.
+"""Pre-flight checks for the recurring story-predev-hardening job.
 
-Runs deterministic checks #1-#4, #6, #7 from jobs/story-code-review.md and
-writes a structured JSON result file. The LLM-driven job MUST read that file
-verbatim rather than re-perform the checks itself; this prevents the
-fabricated-evidence failure mode observed on 2026-04-25 (see
-_bmad-output/process-notes/code-review-runs.log rows 1-5, with annotations).
-
-Check #5 (bmad-code-review skill discoverability) cannot be verified from a
-shell script and remains the LLM's responsibility AFTER this script runs.
+Runs deterministic repository checks and writes a structured JSON result file.
+The LLM-driven job MUST read that file verbatim rather than re-perform the
+checks itself; this keeps aborts auditable and avoids fabricated evidence.
 
 Usage:
-    python Hexalith.AI.Tools/jobs/preflight-code-review.py [--repo PATH] [--out PATH] [--latest]
+    python Hexalith.AI.Tools/jobs/preflight-predev-hardening.py [--repo PATH] [--out PATH] [--latest]
 
 Exit code:
-    0  all hard checks passed (informational checks may still flag items)
+    0  all hard checks passed
     1  at least one hard check failed
     2  script error (uncaught exception)
 """
@@ -34,9 +29,8 @@ import yaml
 SPRINT_STATUS_REL = Path("_bmad-output/implementation-artifacts/sprint-status.yaml")
 ARTIFACTS_ROOT_REL = Path("_bmad-output/implementation-artifacts")
 LESSONS_LEDGER_REL = Path("_bmad-output/process-notes/story-creation-lessons.md")
-DEFERRED_WORK_REL = Path("_bmad-output/implementation-artifacts/deferred-work.md")
 RESULT_DIR_REL = Path("_bmad-output/process-notes")
-LATEST_RESULT_REL = RESULT_DIR_REL / "code-review-preflight-latest.json"
+LATEST_RESULT_REL = RESULT_DIR_REL / "predev-preflight-latest.json"
 
 PREFLIGHT_AUDIT_EXCLUDES = [
     ":(exclude)_bmad-output/process-notes/predev-preflight-*.json",
@@ -131,17 +125,11 @@ def check_dir_exists(repo: Path, rel: Path, check_id: int, name: str) -> dict[st
     return info
 
 
-def check_file_readable(
-    repo: Path,
-    rel: Path,
-    check_id: int,
-    name: str,
-    fail_on_missing: bool = True,
-) -> dict[str, Any]:
+def check_file_readable(repo: Path, rel: Path, check_id: int, name: str) -> dict[str, Any]:
     path = repo / rel
     info: dict[str, Any] = {"id": check_id, "name": name, "path": str(path)}
     if not path.exists():
-        info["result"] = "fail" if fail_on_missing else "info"
+        info["result"] = "fail"
         info["details"] = "file does not exist"
         return info
     if not path.is_file():
@@ -160,7 +148,7 @@ def check_file_readable(
 
 
 def resolve_story_artifact(repo: Path, story_key: str) -> tuple[bool, list[str]]:
-    """Implements the Story Artifact Resolution rule from jobs/story-code-review.md."""
+    """Implements the Story Artifact Resolution rule from the job spec."""
     root = repo / ARTIFACTS_ROOT_REL
     candidates: list[Path] = []
     flat = root / f"{story_key}.md"
@@ -178,8 +166,8 @@ def resolve_story_artifact(repo: Path, story_key: str) -> tuple[bool, list[str]]
 
 
 def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) -> dict[str, Any]:
-    """#6 status–artifact consistency."""
-    info: dict[str, Any] = {"id": 6, "name": "status-artifact consistency"}
+    """#4 status-artifact consistency."""
+    info: dict[str, Any] = {"id": 4, "name": "status-artifact consistency"}
     if yaml_check["result"] != "pass":
         info["result"] = "skipped"
         info["details"] = "skipped because check #1 (yaml parse) did not pass"
@@ -217,15 +205,15 @@ def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) ->
 
 
 def check_working_tree(repo: Path) -> dict[str, Any]:
-    """#7 working tree cleanliness."""
-    info: dict[str, Any] = {"id": 7, "name": "working tree cleanliness"}
+    """#5 working tree cleanliness, excluding pre-flight audit JSON files."""
+    info: dict[str, Any] = {"id": 5, "name": "working tree cleanliness"}
     cmd_info = run_command(["git", "status", "--porcelain", "--", ".", *PREFLIGHT_AUDIT_EXCLUDES], cwd=repo)
     info.update(cmd_info)
     if cmd_info["exit_code"] != 0:
         info["result"] = "fail"
         info["details"] = f"git status --porcelain exited {cmd_info['exit_code']}"
         return info
-    lines = [l for l in cmd_info["stdout"].splitlines() if l.strip()]
+    lines = [line for line in cmd_info["stdout"].splitlines() if line.strip()]
     info["dirty_path_count"] = len(lines)
     if lines:
         info["result"] = "fail"
@@ -237,14 +225,14 @@ def check_working_tree(repo: Path) -> dict[str, Any]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Pre-flight checks for story-code-review job.")
+    parser = argparse.ArgumentParser(description="Pre-flight checks for story-predev-hardening job.")
     parser.add_argument("--repo", type=Path, default=detect_default_repo(),
                         help=("Path to application repo root (default: nearest ancestor containing "
                               "_bmad-output/implementation-artifacts/sprint-status.yaml, otherwise cwd)"))
     parser.add_argument("--out", type=Path, default=None,
-                        help="JSON result path (default: _bmad-output/process-notes/code-review-preflight-{ISO}.json)")
+                        help="JSON result path (default: _bmad-output/process-notes/predev-preflight-{ISO}.json)")
     parser.add_argument("--latest", action="store_true",
-                        help="Also write _bmad-output/process-notes/code-review-preflight-latest.json")
+                        help="Also write _bmad-output/process-notes/predev-preflight-latest.json")
     args = parser.parse_args()
 
     repo = args.repo.resolve()
@@ -255,9 +243,6 @@ def main() -> int:
         yaml_check,
         check_dir_exists(repo, ARTIFACTS_ROOT_REL, 2, "artifacts root exists"),
         check_file_readable(repo, LESSONS_LEDGER_REL, 3, "lessons ledger readable"),
-        check_file_readable(repo, DEFERRED_WORK_REL, 4, "deferred-work ledger readable",
-                            fail_on_missing=False),
-        # #5 — skill discoverability — not script-checkable; LLM verifies after.
         check_status_artifact_consistency(repo, yaml_check),
         check_working_tree(repo),
     ]
@@ -265,23 +250,20 @@ def main() -> int:
 
     result = {
         "schema_version": 1,
-        "produced_by": "jobs/preflight-code-review.py",
+        "produced_by": "jobs/preflight-predev-hardening.py",
         "timestamp": timestamp,
         "repo": str(repo),
         "result": overall,
         "checks": checks,
         "note_to_llm": (
-            "This file was produced by jobs/preflight-code-review.py. The recurring "
-            "code-review job (jobs/story-code-review.md) MUST quote the contents of "
-            "this file verbatim when reporting pre-flight results — do NOT re-run "
-            "the checks yourself, paraphrase them, or summarize them in your own "
-            "words. Check #5 (bmad-code-review skill discoverability) is not "
-            "covered by this script and remains your responsibility to verify "
-            "after reading this file."
+            "This file was produced by jobs/preflight-predev-hardening.py. The "
+            "recurring pre-dev hardening job MUST quote the contents of this file "
+            "verbatim when reporting pre-flight results; do NOT re-run the checks "
+            "yourself, paraphrase them, or summarize them in your own words."
         ),
     }
 
-    out_path = args.out or (repo / RESULT_DIR_REL / f"code-review-preflight-{timestamp.replace(':', '')}.json")
+    out_path = args.out or (repo / RESULT_DIR_REL / f"predev-preflight-{timestamp.replace(':', '')}.json")
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
 

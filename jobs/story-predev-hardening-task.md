@@ -4,7 +4,7 @@ You are running a recurring BMAD pre-development hardening job for this reposito
 
 ## Goal
 
-Maintain a buffer of at least two `ready-for-dev` stories, then harden them in order:
+Maintain a buffer of at least five `ready-for-dev` stories, then harden them in order:
 
 1. Create the next backlog story when the `ready-for-dev` buffer is below the target.
 2. Run BMAD party-mode review on a ready story that has no completed party-mode trace.
@@ -35,19 +35,60 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
 
 ## Pre-Flight Checks
 
-Before any selection, verify:
+**Pre-flight is performed by an out-of-band script — `Hexalith.AI.Tools/jobs/preflight-predev-hardening.py`. The LLM does NOT perform the checks itself.** The script's JSON result file is the only acceptable source of pre-flight pass/fail.
+
+### Procedure (mandatory, in order)
+
+1. **Run the script against the application repository, not the tools submodule.** The tools repository is normally checked out as the `Hexalith.AI.Tools` submodule inside each application repository. Prefer running from the application repository root with:
+
+   ```text
+   python Hexalith.AI.Tools/jobs/preflight-predev-hardening.py --latest
+   ```
+
+   If the automation starts inside the `Hexalith.AI.Tools` submodule, the script auto-detects the nearest parent application repository containing `_bmad-output/implementation-artifacts/sprint-status.yaml`. If the job file is being run from a standalone tools checkout, use the same script with `--repo {application-repository-root}`. The script writes a per-run JSON result to `_bmad-output/process-notes/predev-preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/predev-preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error.
+
+2. **Read the result file.** Open `_bmad-output/process-notes/predev-preflight-latest.json` with the file-read tool. Do not skip this step even if you saw the script's stdout — the JSON is the canonical record.
+
+3. **Decide based on the JSON, not on your own re-checks.**
+   - If `result == "pass"` in the JSON: pre-flight is green. Proceed to selection.
+   - If `result == "fail"` in the JSON: abort. Write the run-log row and structured output per the next section.
+
+### Reporting failed pre-flight (binding)
+
+When pre-flight fails, the run-log row and structured output's `notes` field MUST contain:
+
+- The path of the JSON result file you read: `_bmad-output/process-notes/predev-preflight-latest.json`.
+- The `timestamp` field copied verbatim from that JSON.
+- For each check whose `result == "fail"`: the check's `name` and its `details` field copied verbatim from the JSON.
+- For status-artifact drift failures specifically: also copy the failed check's `drifts` array.
+- For working-tree failures specifically: also copy the verbatim `stdout` field of that check (the actual `git status --porcelain -- . ...` output captured by the script).
+
+You may NOT:
+
+- Paraphrase or rewrite the JSON contents in your own words.
+- Re-run the underlying checks (`yaml.safe_load`, `git status --porcelain`, filesystem probes, etc.) and substitute your observations for the JSON's.
+- Generate plausible-looking "verbatim" output that did not come from the JSON file.
+
+If you find yourself about to write an abort message describing repository state that does not appear in the JSON file you just read, stop. The JSON is ground truth; your recollection is not.
+
+### What the script checks
+
+For reference (the script implements these — do not re-implement them yourself):
 
 1. `sprint-status.yaml` exists and parses as YAML.
-2. The artifacts root directory exists.
-3. The lessons ledger exists and is readable.
-4. **Status–artifact consistency.** For each `development_status` entry whose key is neither `epic-*` nor `*-retrospective`, resolve the artifact using the **Story Artifact Resolution** rule. The status and the artifact must agree:
-   - `status == backlog` ⇒ no artifact must exist for that key.
+2. `_bmad-output/implementation-artifacts/` exists.
+3. Lessons ledger (`_bmad-output/process-notes/story-creation-lessons.md`) is readable.
+4. Status–artifact consistency: for each `development_status` entry whose key is neither `epic-*` nor `*-retrospective`:
+   - `status == backlog` ⇒ no artifact must exist.
    - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
-   - `status == blocked` is exempt (blocked stories may legitimately have a partial or no artifact pending human reconciliation).
+   - `status == blocked` is exempt.
+5. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files.
 
-   On any mismatch, abort with `operation: failed` and `notes: "status-artifact drift on {key}: status={status}, artifact={present|absent}"`. Do not auto-repair: a human must reconcile the yaml and the disk before the next run. This protects against silent overwrite when a prior partial run, a `git reset`, or a manual edit leaves yaml and disk out of sync.
+The script never auto-repairs. A human must reconcile the YAML, missing ledgers, missing artifacts, or dirty working tree before the next run.
 
-If any check fails, append a `failed` row to the run log, emit the structured output with `operation: failed` and a `notes` field naming the failed check, and stop.
+### Per-run JSON result files
+
+The script writes `predev-preflight-{ISO}.json` per run and overwrites `predev-preflight-latest.json` on each `--latest` invocation. Do not commit these files. Do not delete the per-run files manually — they are the audit trail for any disputed abort.
 
 ## Story Artifact Resolution
 
@@ -296,7 +337,7 @@ When the selected operation is finished and all story artifacts, sprint status u
 2. Commit the changes produced by this job.
 3. Push the commit to the current branch.
 
-Do not mix unrelated user changes into the job commit. If unrelated changes are present, leave them untouched and report that only this job's changes were pushed.
+Do not stage or commit pre-flight JSON result files. Do not mix unrelated user changes into the job commit. If unrelated changes are present, leave them untouched and report that only this job's changes were pushed.
 
 ## Failure Handling
 
