@@ -45,7 +45,7 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
    python Hexalith.AI.Tools/jobs/preflight-predev-hardening.py --latest
    ```
 
-   If the automation starts inside the `Hexalith.AI.Tools` submodule, the script auto-detects the nearest parent application repository containing `_bmad-output/implementation-artifacts/sprint-status.yaml`. If the job file is being run from a standalone tools checkout, use the same script with `--repo {application-repository-root}`. The script writes a per-run JSON result to `_bmad-output/process-notes/predev-preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/predev-preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error.
+   If the automation starts inside the `Hexalith.AI.Tools` submodule, the script auto-detects the nearest parent application repository containing `_bmad-output/implementation-artifacts/sprint-status.yaml`. If the job file is being run from a standalone tools checkout, use the same script with `--repo {application-repository-root}`. The script writes a per-run JSON result to `_bmad-output/process-notes/predev-preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/predev-preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error. On first execution for a repository, the script may create `_bmad-output/process-notes/story-creation-lessons.md` from the default template before evaluating the lessons-ledger check; this is a valid bootstrap action, not a pre-flight failure.
 
 2. **Read the result file.** Open `_bmad-output/process-notes/predev-preflight-latest.json` with the file-read tool. Do not skip this step even if you saw the script's stdout — the JSON is the canonical record.
 
@@ -82,9 +82,9 @@ For reference (the script implements these — do not re-implement them yourself
    - `status == backlog` ⇒ no artifact must exist.
    - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
    - `status == blocked` is exempt.
-5. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files.
+5. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files and any same-run first-execution lessons-ledger bootstrap path reported in the JSON `bootstrap_actions` array.
 
-The script never auto-repairs. A human must reconcile the YAML, missing ledgers, missing artifacts, or dirty working tree before the next run.
+The script never auto-repairs domain state. A human must reconcile the YAML, missing artifacts, or dirty working tree before the next run. The only allowed pre-flight bootstrap is creating the default lessons ledger when `_bmad-output/process-notes/story-creation-lessons.md` does not exist.
 
 ### Per-run JSON result files
 
@@ -337,7 +337,7 @@ When the selected operation is finished and all story artifacts, sprint status u
 2. Commit the changes produced by this job.
 3. Push the commit to the current branch.
 
-Do not stage or commit pre-flight JSON result files. Do not mix unrelated user changes into the job commit. If unrelated changes are present, leave them untouched and report that only this job's changes were pushed.
+Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present, leave them untouched and report that only this job's changes were pushed.
 
 ## Failure Handling
 

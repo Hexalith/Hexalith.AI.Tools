@@ -49,6 +49,8 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
    python Hexalith.AI.Tools/jobs/preflight-code-review.py --latest
    ```
 
+   On first execution for a repository, the script may create `_bmad-output/process-notes/story-creation-lessons.md` from the default template before evaluating the lessons-ledger check; this is a valid bootstrap action, not a pre-flight failure.
+
    If the automation starts inside the `Hexalith.AI.Tools` submodule, the script auto-detects the nearest parent application repository containing `_bmad-output/implementation-artifacts/sprint-status.yaml`. If the job file is being run from a standalone tools checkout, use the same script with `--repo {application-repository-root}`. The script writes a per-run JSON result to `_bmad-output/process-notes/code-review-preflight-{ISO}.json` and a copy to `_bmad-output/process-notes/code-review-preflight-latest.json`. Its exit code is 0 if all hard checks passed, 1 if any failed, 2 on script error.
 
 2. **Read the result file.** Open `_bmad-output/process-notes/code-review-preflight-latest.json` with the file-read tool. Do not skip this step even if you "saw" the script's stdout — the JSON is the canonical record.
@@ -82,16 +84,16 @@ For reference (the script implements these — do not re-implement them yourself
 
 1. `sprint-status.yaml` parses as YAML.
 2. `_bmad-output/implementation-artifacts/` exists.
-3. Lessons ledger (`_bmad-output/process-notes/story-creation-lessons.md`) is readable.
+3. Lessons ledger (`_bmad-output/process-notes/story-creation-lessons.md`) is readable, creating the first-run template when the file is missing.
 4. Deferred-work ledger readable (informational; absence does not fail pre-flight — the skill creates it on first write).
 5. **(LLM-only)** `bmad-code-review` skill is discoverable.
 6. Status–artifact consistency: for each `development_status` entry whose key is neither `epic-*` nor `*-retrospective`:
    - `status == backlog` ⇒ no artifact must exist.
    - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
    - `status == blocked` exempt.
-7. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files.
+7. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files and any same-run first-execution lessons-ledger bootstrap path reported in the JSON `bootstrap_actions` array.
 
-The script never auto-repairs. A human must reconcile the YAML or the working tree before the next run.
+The script never auto-repairs domain state. A human must reconcile the YAML or the working tree before the next run. The only allowed pre-flight bootstrap is creating the default lessons ledger when `_bmad-output/process-notes/story-creation-lessons.md` does not exist.
 
 ### Per-run JSON result files
 
@@ -276,7 +278,7 @@ When the selected operation is finished and all story artifacts, sprint-status u
 2. Stage and commit only files modified by this job: the story artifact(s), `sprint-status.yaml`, `deferred-work.md`, the run log, and any new files under `_bmad-output/implementation-artifacts/review-runs/{story-name}/`.
 3. Push the commit to the current branch.
 
-Do not stage or commit pre-flight JSON result files. Do not mix unrelated user changes into the job commit. If unrelated changes are present (the working tree was clean at pre-flight after excluding pre-flight audit JSON files, so any other new unrelated content is suspicious), leave them untouched and report that only this job's changes were pushed.
+Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present (the working tree was clean at pre-flight after excluding pre-flight audit JSON files and same-run bootstrap files, so any other new unrelated content is suspicious), leave them untouched and report that only this job's changes were pushed.
 
 ## Failure Handling
 
