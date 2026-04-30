@@ -32,6 +32,23 @@ LESSONS_LEDGER_REL = Path("_bmad-output/process-notes/story-creation-lessons.md"
 RESULT_DIR_REL = Path("_bmad-output/process-notes")
 LATEST_RESULT_REL = RESULT_DIR_REL / "predev-preflight-latest.json"
 
+DEFAULT_LESSONS_LEDGER_TEXT = """# Story Creation Lessons
+
+This ledger was bootstrapped automatically by `jobs/preflight-predev-hardening.py`
+because this repository had no existing story-creation lessons file.
+
+Use this file to record durable lessons for recurring BMAD story creation,
+party-mode review, advanced elicitation, and code-review automation.
+
+## L08 - Party Review vs. Elicitation
+
+- Party-mode review is the cross-role critique and triage pass before
+  development; it should produce dated trace evidence when completed.
+- Advanced elicitation is a separate hardening pass after a completed
+  party-mode trace exists; a recommendation to run elicitation is not itself
+  completed elicitation evidence.
+"""
+
 PREFLIGHT_AUDIT_EXCLUDES = [
     ":(exclude)_bmad-output/process-notes/predev-preflight-*.json",
     ":(exclude)_bmad-output/process-notes/predev-preflight-latest.json",
@@ -147,6 +164,31 @@ def check_file_readable(repo: Path, rel: Path, check_id: int, name: str) -> dict
     return info
 
 
+def ensure_lessons_ledger(repo: Path) -> tuple[dict[str, Any], list[Path]]:
+    """#3 lessons ledger exists, creating the first-run template if absent."""
+    path = repo / LESSONS_LEDGER_REL
+    created: list[Path] = []
+    if not path.exists():
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(DEFAULT_LESSONS_LEDGER_TEXT, encoding="utf-8", newline="\n")
+            created.append(LESSONS_LEDGER_REL)
+        except Exception as e:  # noqa: BLE001
+            info: dict[str, Any] = {
+                "id": 3,
+                "name": "lessons ledger readable",
+                "path": str(path),
+                "result": "fail",
+                "details": f"could not create first-run lessons ledger: {type(e).__name__}: {e}",
+            }
+            return info, created
+    info = check_file_readable(repo, LESSONS_LEDGER_REL, 3, "lessons ledger readable")
+    if created and info["result"] == "pass":
+        info["details"] = "file created from first-run template and readable"
+        info["created"] = True
+    return info, created
+
+
 def resolve_story_artifact(repo: Path, story_key: str) -> tuple[bool, list[str]]:
     """Implements the Story Artifact Resolution rule from the job spec."""
     root = repo / ARTIFACTS_ROOT_REL
@@ -204,10 +246,13 @@ def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) ->
     return info
 
 
-def check_working_tree(repo: Path) -> dict[str, Any]:
-    """#5 working tree cleanliness, excluding pre-flight audit JSON files."""
+def check_working_tree(repo: Path, extra_excludes: list[Path] | None = None) -> dict[str, Any]:
+    """#5 working tree cleanliness, excluding audit files and same-run bootstraps."""
     info: dict[str, Any] = {"id": 5, "name": "working tree cleanliness"}
-    cmd_info = run_command(["git", "status", "--porcelain", "--", ".", *PREFLIGHT_AUDIT_EXCLUDES], cwd=repo)
+    excludes = list(PREFLIGHT_AUDIT_EXCLUDES)
+    for rel in extra_excludes or []:
+        excludes.append(f":(exclude){rel.as_posix()}")
+    cmd_info = run_command(["git", "status", "--porcelain", "--", ".", *excludes], cwd=repo)
     info.update(cmd_info)
     if cmd_info["exit_code"] != 0:
         info["result"] = "fail"
@@ -239,12 +284,13 @@ def main() -> int:
     timestamp = now_iso()
 
     yaml_check = check_yaml_parse(repo)
+    lessons_check, bootstrapped_paths = ensure_lessons_ledger(repo)
     checks: list[dict[str, Any]] = [
         yaml_check,
         check_dir_exists(repo, ARTIFACTS_ROOT_REL, 2, "artifacts root exists"),
-        check_file_readable(repo, LESSONS_LEDGER_REL, 3, "lessons ledger readable"),
+        lessons_check,
         check_status_artifact_consistency(repo, yaml_check),
-        check_working_tree(repo),
+        check_working_tree(repo, bootstrapped_paths),
     ]
     overall = "fail" if any(c["result"] == "fail" for c in checks) else "pass"
 
@@ -254,6 +300,14 @@ def main() -> int:
         "timestamp": timestamp,
         "repo": str(repo),
         "result": overall,
+        "bootstrap_actions": [
+            {
+                "action": "created",
+                "path": str(repo / rel),
+                "reason": "first-run lessons ledger was missing",
+            }
+            for rel in bootstrapped_paths
+        ],
         "checks": checks,
         "note_to_llm": (
             "This file was produced by jobs/preflight-predev-hardening.py. The "
