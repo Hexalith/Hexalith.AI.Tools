@@ -51,11 +51,33 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
 
 3. **Decide based on the JSON, not on your own re-checks.**
    - If `result == "pass"` in the JSON: pre-flight is green. Proceed to selection.
-   - If `result == "fail"` in the JSON: abort. Write the run-log row and structured output per the next section.
+   - If `result == "fail"` in the JSON and any failed check other than `working tree cleanliness` is present: abort. Write the run-log row and structured output per the next section.
+   - If `result == "fail"` in the JSON and the only failed check is `working tree cleanliness`: classify the dirty paths from that check's JSON `stdout` field using **Working-tree failure classification** below. Abort only for an active BMAD story-operation collision. Otherwise continue to selection with the dirty tree treated as a soft warning.
+
+### Working-tree failure classification
+
+The recurring job may run while normal development or code review is in progress. A dirty working tree is a hard pre-flight blocker only when the JSON `working tree cleanliness` failure shows evidence that a BMAD story operation is currently being created, reviewed, or elicited.
+
+Use only the failed check's JSON `stdout` field for this classification. Do not run a fresh `git status`, and do not infer paths that are not present in the JSON.
+
+Treat the working-tree failure as a **hard blocker** when any dirty path in `stdout` is one of these BMAD-owned story-operation paths:
+
+- `_bmad-output/implementation-artifacts/sprint-status.yaml`
+- `_bmad-output/implementation-artifacts/*.md`
+- `_bmad-output/implementation-artifacts/*/`
+- `_bmad-output/implementation-artifacts/review-runs/`
+- `_bmad-output/process-notes/predev-hardening-runs.log`
+- `_bmad-output/process-notes/story-creation-lessons.md`
+
+Treat the working-tree failure as a **soft warning** when every dirty path is outside those BMAD-owned story-operation paths, such as `src/`, `tests/`, `samples/`, `docs/`, tooling changes, or other ordinary code development/review files. In this case:
+
+- Continue with the selected operation.
+- Record in the final structured output `notes` that pre-flight had a soft working-tree warning and copy the JSON timestamp plus verbatim `stdout`.
+- At final git sync, stage and commit only files produced by this job. Leave all pre-existing development/review changes untouched.
 
 ### Reporting failed pre-flight (binding)
 
-When pre-flight fails, the run-log row and structured output's `notes` field MUST contain:
+When pre-flight hard-fails, the run-log row and structured output's `notes` field MUST contain:
 
 - The path of the JSON result file you read: `_bmad-output/process-notes/predev-preflight-latest.json`.
 - The `timestamp` field copied verbatim from that JSON.
@@ -82,9 +104,9 @@ For reference (the script implements these — do not re-implement them yourself
    - `status == backlog` ⇒ no artifact must exist.
    - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
    - `status == blocked` is exempt.
-5. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files and any same-run first-execution lessons-ledger bootstrap path reported in the JSON `bootstrap_actions` array.
+5. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files and any same-run first-execution lessons-ledger bootstrap path reported in the JSON `bootstrap_actions` array. This script-level failure is not automatically a job-level hard failure; the LLM must classify it using **Working-tree failure classification** above.
 
-The script never auto-repairs domain state. A human must reconcile the YAML, missing artifacts, or dirty working tree before the next run. The only allowed pre-flight bootstrap is creating the default lessons ledger when `_bmad-output/process-notes/story-creation-lessons.md` does not exist.
+The script never auto-repairs domain state. A human must reconcile YAML or missing-artifact drift before the next run. Dirty working-tree entries must be reconciled before the next run only when they touch BMAD-owned story-operation paths. Ordinary development/review changes may remain dirty and must be left untouched by this job. The only allowed pre-flight bootstrap is creating the default lessons ledger when `_bmad-output/process-notes/story-creation-lessons.md` does not exist.
 
 ### Per-run JSON result files
 
@@ -334,16 +356,16 @@ Otherwise leave the status untouched. The `bmad-create-story` skill owns the `ba
 When the selected operation is finished and all story artifacts, sprint status updates, traces, and run-log entries are written:
 
 1. Review the working tree.
-2. Commit the changes produced by this job.
+2. Commit only the changes produced by this job.
 3. Push the commit to the current branch.
 
-Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present, leave them untouched and report that only this job's changes were pushed.
+Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present, including soft-warning development/review changes from pre-flight, leave them untouched and report that only this job's changes were pushed.
 
 ## Failure Handling
 
 Abort the run immediately when any of these occur:
 
-- A pre-flight check failed.
+- A hard pre-flight check failed.
 - `sprint-status.yaml` is unparseable.
 - The selected story artifact cannot be read.
 - A skill invocation returns an error or refuses to engage with both the slash and natural-language forms.
