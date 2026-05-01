@@ -56,11 +56,25 @@ After the operation completes (or aborts), stop immediately. Do not chain anothe
 
 ### Working-tree failure classification
 
-The recurring job may run while normal development or code review is in progress. A dirty working tree is a hard pre-flight blocker only when the JSON `working tree cleanliness` failure shows evidence that a BMAD story operation is currently being created, reviewed, or elicited.
+The recurring job may run while normal development, dev-story execution, or code review is in progress. A dirty working tree is a hard pre-flight blocker only when the JSON `working tree cleanliness` failure shows evidence that a BMAD pre-dev story operation is currently being created, reviewed by party mode, or elicited. A story that has already moved out of `ready-for-dev` into active implementation is ordinary development work for this job and must be skipped, not treated as a pre-dev collision.
 
-Use only the failed check's JSON `stdout` field for this classification. Do not run a fresh `git status`, and do not infer paths that are not present in the JSON.
+Use only the failed check's JSON `stdout` field to identify dirty paths. Do not run a fresh `git status`, and do not infer paths that are not present in the JSON. For the active-dev-story exception below, you may read the dirty story artifact and `sprint-status.yaml` values named in `stdout` to verify the selected story's current status, but do not substitute a fresh working-tree scan for the JSON.
 
-Treat the working-tree failure as a **hard blocker** when any dirty path in `stdout` is one of these BMAD-owned story-operation paths, except for the recoverable run-log-only case described below:
+Treat dirty story artifacts and `sprint-status.yaml` as an **active-dev-story soft warning**, not a hard blocker, when the dirty paths in `stdout` show only normal development state for one or more stories that have already left the pre-dev queue:
+
+- The dirty story artifact's top-level status is `Status: in-progress` or `Status: review`, and the matching `development_status` entry in `_bmad-output/implementation-artifacts/sprint-status.yaml` is `in-progress` or `review`.
+- Or, only `_bmad-output/implementation-artifacts/sprint-status.yaml` is dirty and the relevant story status change moves a story out of `ready-for-dev` to `in-progress` or `review`.
+- Any other dirty paths in `stdout`, if present, are ordinary development/review paths such as `src/`, `tests/`, `samples/`, `docs/`, or tooling changes.
+- The dirty paths in `stdout` do not include `_bmad-output/implementation-artifacts/review-runs/`, `_bmad-output/process-notes/story-creation-lessons.md`, or another ready/backlog story artifact being created, party-reviewed, or elicited.
+
+In this case:
+
+- Continue with selection.
+- Exclude any `in-progress` or `review` story from create/review/elicitation selection exactly as the normal selection algorithm already does.
+- Record in the final structured output `notes` that pre-flight had an active-dev-story soft warning and copy the JSON timestamp plus verbatim `stdout`.
+- At final git sync, stage and commit only files produced by this job. Leave the active dev-story artifact, sprint-status update, source/test/doc changes, and any other implementation work untouched.
+
+Treat the working-tree failure as a **hard blocker** when any dirty path in `stdout` is one of these BMAD-owned pre-dev story-operation paths, except for the recoverable run-log-only and active-dev-story cases described above:
 
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
 - `_bmad-output/implementation-artifacts/*.md`
