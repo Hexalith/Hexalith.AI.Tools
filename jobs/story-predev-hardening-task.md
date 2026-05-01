@@ -60,7 +60,7 @@ The recurring job may run while normal development or code review is in progress
 
 Use only the failed check's JSON `stdout` field for this classification. Do not run a fresh `git status`, and do not infer paths that are not present in the JSON.
 
-Treat the working-tree failure as a **hard blocker** when any dirty path in `stdout` is one of these BMAD-owned story-operation paths:
+Treat the working-tree failure as a **hard blocker** when any dirty path in `stdout` is one of these BMAD-owned story-operation paths, except for the recoverable run-log-only case described below:
 
 - `_bmad-output/implementation-artifacts/sprint-status.yaml`
 - `_bmad-output/implementation-artifacts/*.md`
@@ -68,6 +68,13 @@ Treat the working-tree failure as a **hard blocker** when any dirty path in `std
 - `_bmad-output/implementation-artifacts/review-runs/`
 - `_bmad-output/process-notes/predev-hardening-runs.log`
 - `_bmad-output/process-notes/story-creation-lessons.md`
+
+Treat dirty `_bmad-output/process-notes/predev-hardening-runs.log` as a **recoverable automation-log warning**, not an active story-operation collision, when every other dirty path in `stdout` is outside the BMAD-owned story-operation paths above. This can happen when a previous abort recorded its required run-log row but did not push the bookkeeping change. In this case:
+
+- Continue with selection.
+- Include the pre-existing run-log delta plus this run's appended row in this job's final git sync.
+- Record in the final structured output `notes` that pre-flight had a recoverable automation-log warning and copy the JSON timestamp plus verbatim `stdout`.
+- Do not use this exception when any dirty story artifact, sprint status file, review-run file, or lessons ledger entry is also present.
 
 Treat the working-tree failure as a **soft warning** when every dirty path is outside those BMAD-owned story-operation paths, such as `src/`, `tests/`, `samples/`, `docs/`, tooling changes, or other ordinary code development/review files. In this case:
 
@@ -360,6 +367,20 @@ When the selected operation is finished and all story artifacts, sprint status u
 3. Push the commit to the current branch.
 
 Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present, including soft-warning development/review changes from pre-flight, leave them untouched and report that only this job's changes were pushed.
+
+### Abort Git Sync
+
+When the run aborts before a selected story operation because of a hard pre-flight failure:
+
+1. Append the required `failed` row to `_bmad-output/process-notes/predev-hardening-runs.log`.
+2. Review the working tree.
+3. Commit and push only the abort bookkeeping files produced by this automation run:
+   - `_bmad-output/process-notes/predev-hardening-runs.log`
+   - `_bmad-output/process-notes/story-creation-lessons.md` only when the preflight JSON `bootstrap_actions` field reports same-run lessons-ledger bootstrap
+4. Do not stage or commit pre-flight JSON result files.
+5. Do not stage or commit any dirty story artifact, sprint status file, review-run file, source file, test file, or unrelated user/development change that appeared in the preflight JSON `stdout`.
+
+This abort-only sync is allowed even though no heavy BMAD operation ran. Its purpose is to prevent the automation's required run-log row from becoming the next run's blocker. If the run log was already dirty before this run, include that existing run-log delta in the abort bookkeeping commit; it is still automation-owned log state. If git cannot commit or push the run log without mixing unrelated files, leave it uncommitted and report that as a blocking note in the structured output.
 
 ## Failure Handling
 
