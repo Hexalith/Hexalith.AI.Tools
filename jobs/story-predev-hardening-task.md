@@ -146,6 +146,8 @@ If rule A's threshold is met but no `backlog` entry exists, fall through to rule
 
 Read every `*.md` file resolved by **Story Artifact Resolution** for the story under consideration.
 
+For the trace patterns below, "ISO date" means either a standalone calendar date (`YYYY-MM-DD`) or the date component of an ISO timestamp (`YYYY-MM-DDTHH:mm:ss...`). When implementing this check mechanically, match the date prefix in both forms; do not require a word boundary immediately after the day because `T` is a word character and valid ISO timestamps would be missed.
+
 ### Party-mode review — POSITIVE trace
 
 A trace counts as completed when **at least one** of these structured patterns matches:
@@ -365,6 +367,7 @@ When the selected operation is finished and all story artifacts, sprint status u
 1. Review the working tree.
 2. Commit only the changes produced by this job.
 3. Push the commit to the current branch.
+4. Merge the pushed job commit into `main` and push `main` when this can be done cleanly without staging unrelated files or resolving conflicts. If the merge is blocked by conflicts, missing permissions, or unrelated dirty files, leave the job commit pushed on its branch and report the merge blocker in `notes`.
 
 Do not stage or commit pre-flight JSON result files. If the preflight JSON contains a `bootstrap_actions` entry for `_bmad-output/process-notes/story-creation-lessons.md`, include that generated ledger file in the job commit. Do not mix unrelated user changes into the job commit. If unrelated changes are present, including soft-warning development/review changes from pre-flight, leave them untouched and report that only this job's changes were pushed.
 
@@ -377,8 +380,9 @@ When the run aborts before a selected story operation because of a hard pre-flig
 3. Commit and push only the abort bookkeeping files produced by this automation run:
    - `_bmad-output/process-notes/predev-hardening-runs.log`
    - `_bmad-output/process-notes/story-creation-lessons.md` only when the preflight JSON `bootstrap_actions` field reports same-run lessons-ledger bootstrap
-4. Do not stage or commit pre-flight JSON result files.
-5. Do not stage or commit any dirty story artifact, sprint status file, review-run file, source file, test file, or unrelated user/development change that appeared in the preflight JSON `stdout`.
+4. Merge the pushed abort-bookkeeping commit into `main` and push `main` when this can be done cleanly without staging unrelated files or resolving conflicts. If the merge is blocked, leave the abort-bookkeeping commit pushed on its branch and report the merge blocker in `notes`.
+5. Do not stage or commit pre-flight JSON result files.
+6. Do not stage or commit any dirty story artifact, sprint status file, review-run file, source file, test file, or unrelated user/development change that appeared in the preflight JSON `stdout`.
 
 This abort-only sync is allowed even though no heavy BMAD operation ran. Its purpose is to prevent the automation's required run-log row from becoming the next run's blocker. If the run log was already dirty before this run, include that existing run-log delta in the abort bookkeeping commit; it is still automation-owned log state. If git cannot commit or push the run log without mixing unrelated files, leave it uncommitted and report that as a blocking note in the structured output.
 
