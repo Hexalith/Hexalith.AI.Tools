@@ -88,9 +88,9 @@ For reference (the script implements these — do not re-implement them yourself
 4. Deferred-work ledger readable (informational; absence does not fail pre-flight — the skill creates it on first write).
 5. **(LLM-only)** `bmad-code-review` skill is discoverable.
 6. Status–artifact consistency: for each `development_status` entry whose key is neither `epic-*` nor `*-retrospective`:
-   - `status == backlog` ⇒ no artifact must exist.
-   - `status` in `{ready-for-dev, in-progress, review, done}` ⇒ an artifact must exist.
+   - `status == review` ⇒ an artifact must exist. Missing review artifacts are blocking because the recurring job cannot run a story review without the story file.
    - `status == blocked` exempt.
+   - Other drift is non-blocking diagnostic output. Examples: `done` historical/governance rows without dedicated story artifacts, `backlog` rows with parked draft artifacts, or `ready-for-dev` / `in-progress` rows missing files. The script reports these in `non_blocking_drifts` but does not abort the code-review queue drain.
 7. Working tree cleanliness: `git status --porcelain -- .` produces zero non-empty lines after excluding pre-flight audit JSON files and any same-run first-execution lessons-ledger bootstrap path reported in the JSON `bootstrap_actions` array.
 
 The script never auto-repairs domain state. A human must reconcile the YAML or the working tree before the next run. The only allowed pre-flight bootstrap is creating the default lessons ledger when `_bmad-output/process-notes/story-creation-lessons.md` does not exist.

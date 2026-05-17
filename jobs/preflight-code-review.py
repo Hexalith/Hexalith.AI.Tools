@@ -220,7 +220,12 @@ def resolve_story_artifact(repo: Path, story_key: str) -> tuple[bool, list[str]]
 
 
 def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) -> dict[str, Any]:
-    """#6 status–artifact consistency."""
+    """#6 status–artifact consistency.
+
+    The recurring code-review job can only act on stories in review. Historical
+    planning/governance rows can legitimately be marked done without a dedicated
+    story artifact, so those are reported without blocking review queue drain.
+    """
     info: dict[str, Any] = {"id": 6, "name": "status-artifact consistency"}
     if yaml_check["result"] != "pass":
         info["result"] = "skipped"
@@ -233,7 +238,8 @@ def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) ->
         info["details"] = f"could not re-parse yaml: {type(e).__name__}: {e}"
         return info
     statuses: dict[str, Any] = (data or {}).get("development_status") or {}
-    drifts: list[dict[str, str]] = []
+    hard_drifts: list[dict[str, str]] = []
+    non_blocking_drifts: list[dict[str, str]] = []
     artifact_required = {"ready-for-dev", "in-progress", "review", "done"}
     checked = 0
     for key, status in statuses.items():
@@ -244,17 +250,34 @@ def check_status_artifact_consistency(repo: Path, yaml_check: dict[str, Any]) ->
         checked += 1
         exists, _ = resolve_story_artifact(repo, key)
         if status == "backlog" and exists:
-            drifts.append({"key": key, "status": str(status), "artifact": "present", "expected": "absent"})
+            non_blocking_drifts.append({
+                "key": key,
+                "status": str(status),
+                "artifact": "present",
+                "expected": "absent",
+                "severity": "info",
+            })
         elif status in artifact_required and not exists:
-            drifts.append({"key": key, "status": str(status), "artifact": "absent", "expected": "present"})
+            drift = {"key": key, "status": str(status), "artifact": "absent", "expected": "present"}
+            if status == "review":
+                hard_drifts.append(drift)
+            else:
+                non_blocking_drifts.append({**drift, "severity": "info"})
     info["story_keys_checked"] = checked
-    if drifts:
+    if hard_drifts:
         info["result"] = "fail"
-        info["details"] = f"{len(drifts)} status-artifact drift(s) found"
-        info["drifts"] = drifts
+        info["details"] = f"{len(hard_drifts)} review-status artifact drift(s) found"
+        info["drifts"] = hard_drifts
     else:
         info["result"] = "pass"
-        info["details"] = f"no drift across {checked} story keys"
+        if non_blocking_drifts:
+            info["details"] = (
+                f"no blocking review-status drift across {checked} story keys; "
+                f"{len(non_blocking_drifts)} non-blocking drift(s) reported"
+            )
+            info["non_blocking_drifts"] = non_blocking_drifts
+        else:
+            info["details"] = f"no drift across {checked} story keys"
     return info
 
 
