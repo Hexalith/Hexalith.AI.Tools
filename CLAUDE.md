@@ -14,6 +14,7 @@ truth.
 **Topical instruction modules** (read the one relevant to your task):
 
 - [`hexalith-llm-instructions.md`](./hexalith-llm-instructions.md) — LLM entry point for module work
+- [`hexalith-state-instructions.md`](./hexalith-state-instructions.md) — data-persistence rules (domain modules use `Hexalith.EventStore`; see [Domain-Module Authoring](#domain-module-authoring-domain-centric) below)
 - [`hexalith-ux-instructions.md`](./hexalith-ux-instructions.md) — UI/UX rules (see [User Interface & UX](#user-interface--ux) below)
 
 ## Technology Stack
@@ -46,32 +47,6 @@ boilerplate shared across modules (hosting, event-store plumbing, serialization,
 DI setup, UI scaffolding, test harness helpers), **do not duplicate it** — reuse
 the technical module that provides it, or add it to that technical module first,
 then consume it.
-
-## Git Submodules
-
-Hexalith repositories reference each other **circularly** (e.g.
-`Hexalith.FrontComposer` ↔ `Hexalith.EventStore` ↔ `Hexalith.Tenants`).
-Recursive initialization descends forever and, on Windows, fails with
-`Filename too long` once nested paths exceed the 260-character limit.
-
-**Rules:**
-
-- Initialize **only** the submodules declared at the **root** of the repository.
-- **Never** initialize a submodule nested inside another submodule.
-- **De-initialize** any nested submodule that gets initialized accidentally.
-- **Never** use `--recursive` with `git submodule update`.
-- **Never** use `--remote` (it moves submodules off their pinned commits).
-
-Do **not** run `git submodule update --init --recursive` or
-`git submodule update --remote`.
-
-De-initialize nested submodules and verify none remain:
-
-```sh
-git submodule foreach 'git submodule deinit --all --force || true'
-# The following should print nothing:
-git submodule foreach --quiet 'git submodule status | grep -v "^-" && echo "STILL INITIALIZED in $name" || true'
-```
 
 ## Solution Files
 

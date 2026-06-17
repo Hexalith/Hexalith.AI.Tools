@@ -19,5 +19,5 @@ take precedence on conflict.
 
 - **Agent entry points** — `CLAUDE.md`, `AGENTS.md` (above)
 - **Topical instructions** — `hexalith-llm-instructions.md`,
-  `hexalith-ux-instructions.md`
+  `hexalith-state-instructions.md`, `hexalith-ux-instructions.md`
 
