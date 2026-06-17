@@ -5,6 +5,10 @@ modules. The **authoritative, self-contained guide is [`CLAUDE.md`](./CLAUDE.md)
 read it and follow it in full. This file adds only Codex/agent-specific notes; on
 any conflict, the consuming repository's own instructions win, then `CLAUDE.md`.
 
+**Before any module work**, read
+[`hexalith-llm-instructions.md`](./hexalith-llm-instructions.md) and follow the
+topical instruction module it points you to.
+
 ## Read this first
 
 [`CLAUDE.md`](./CLAUDE.md) is the single source of truth. It covers:
