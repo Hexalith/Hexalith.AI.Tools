@@ -254,13 +254,16 @@ aspire run
 
 **Aspire workflow:** before changing code, run the AppHost with `aspire run` and
 inspect resource state so you start from a known-good baseline. AppHost changes
-require restarting the Aspire app. Use the Aspire MCP tools (`list resources`,
-`list structured logs`, `list console logs`, `list traces`) to debug runtime
-issues, and the Playwright MCP server for functional investigations (get
-navigable endpoints from `list resources`). When adding a resource, list Aspire
-integrations, pick a version aligned with `Aspire.AppHost.Sdk`, and read the
-integration docs before editing the AppHost. Prefer official docs:
-`https://aspire.dev`, `https://learn.microsoft.com/dotnet/aspire`.
+require restarting the Aspire app. The standalone Aspire MCP server is obsolete —
+use the **Aspire agents** integration instead: run `aspire agent init` once to
+install the Aspire skills/tools, then drive the running app through the **Aspire
+CLI** (`aspire describe` for resource state and endpoints, `aspire otel logs` for
+logs and traces, `aspire docs search` for docs). Use the Playwright MCP server for
+functional investigations (get navigable endpoints from `aspire describe`). When
+adding a resource, use `aspire add`, pick a version aligned with
+`Aspire.AppHost.Sdk`, and read the integration docs before editing the AppHost.
+Prefer official docs: `https://aspire.dev`,
+`https://learn.microsoft.com/dotnet/aspire`.
 
 ## Testing Standards
 

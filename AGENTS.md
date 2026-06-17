@@ -28,8 +28,11 @@ topical instruction module it points you to.
 - **Searching:** prefer `rg` and `rg --files`. If `rg` is unavailable, fall back
   to `find`, `ls`, or `grep -rn` without changing repository behavior.
 - **Aspire:** before changing code, run `aspire run` and inspect resource state so
-  you start from a known-good baseline. AppHost changes require a restart. Use the
-  Aspire MCP tools to read logs, traces, and resource state when debugging.
+  you start from a known-good baseline. AppHost changes require a restart. The
+  Aspire MCP server is obsolete — use the **Aspire agents** integration: run
+  `aspire agent init`, then use the Aspire CLI (`aspire describe`, `aspire otel
+  logs`, `aspire docs search`) to read resource state, logs, and traces when
+  debugging.
 - **Stay in scope:** when working inside a domain module, keep changes
   domain-specific (contracts, behaviors, events, projections, flows). Reuse shared
   capabilities from technical modules (`Hexalith.EventStore`,
