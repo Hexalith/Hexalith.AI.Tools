@@ -211,6 +211,10 @@ working on any module user interface. In short:
 - **Reuse over hand-rolling** — avoid raw CSS, HTML, JavaScript, or third-party
   components when an equivalent FrontComposer / Fluent UI V5 component exists.
   Only fall back to custom markup when no such component exists.
+- **No theme redefinition** — express typography/color/spacing via Fluent UI V5
+  component parameters or Fluent 2 design tokens; never recreate
+  component-provided styling in CSS, and never use legacy v4/FAST tokens
+  (`--type-ramp-*`, `--neutral-*`, `--accent-*`, `--neutral-fill-*`, `--palette-*`).
 
 ## Build, Run & Diagnostics
 

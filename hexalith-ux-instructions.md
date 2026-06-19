@@ -16,6 +16,25 @@ Rules for building user interfaces in Hexalith modules.
   Only fall back to custom CSS, HTML, or JavaScript when no such component
   exists.
 
+## No theme redefinition
+
+- Express typography, color, and spacing through **Fluent UI V5 component
+  parameters** (e.g. `FluentText` `Size`/`Weight`/`Color`, `FluentStack`
+  `Width`/`*Gap`) or **Fluent 2 design tokens** (`--colorNeutralForeground*`,
+  `--fontSizeBase*`, `--lineHeightBase*`). **Do not** redefine the theme.
+- Hand-authored CSS **must not recreate what a Fluent component already
+  provides** — for example a heading ramp via `font-size` / `font-weight` /
+  `line-height`, or a foreground role via `color:`. Use the component or token.
+- **Never** use legacy Fluent v4 / FAST tokens (`--neutral-foreground-*`,
+  `--type-ramp-*`, `--accent-*`, `--neutral-fill-*`, `--palette-*`). They belong
+  to the previous major version and do not track the active theme.
+- Custom CSS is allowed **only** for layout the design system does not own
+  (flex / grid, gaps, user-agent resets) or for a feature Fluent provides no
+  component or token for (such as a focusable route-level `<h1>`).
+- Where a module guards this with Fluent conformance tests, files still using
+  legacy tokens must be tracked as an explicit, allowlisted migration backlog —
+  not silently exempted.
+
 ## Page sections
 
 - Page-like surfaces such as pages, dialogs, and detail panels with **two or
