@@ -9,6 +9,11 @@ any conflict, the consuming repository's own instructions win, then `CLAUDE.md`.
 [`hexalith-llm-instructions.md`](./hexalith-llm-instructions.md) and follow the
 topical instruction module it points you to.
 
+**Before any module UI or UX work**, read
+[`hexalith-ux-instructions.md`](./hexalith-ux-instructions.md) directly and
+follow it. In consuming repositories, this file is normally available as
+`Hexalith.AI.Tools/hexalith-ux-instructions.md`.
+
 ## Read this first
 
 [`CLAUDE.md`](./CLAUDE.md) is the single source of truth. It covers:
