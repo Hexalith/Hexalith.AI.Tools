@@ -8,6 +8,10 @@ Before working on any Hexalith module user interface, read
 [hexalith-ux-instructions.md](hexalith-ux-instructions.md) and follow the UX
 rules it defines.
 
+When adding or changing C# code, keep each `.cs` file focused on a single C#
+object/type. Move additional classes, records, structs, interfaces, enums, and
+delegates into their own files named for the object/type.
+
 Before initializing or updating Git submodules, follow the submodule rules in
 [CLAUDE.md](CLAUDE.md#git-submodules). Initialize **only** the submodules
 declared at the **root** of the repository; **never** initialize a submodule
