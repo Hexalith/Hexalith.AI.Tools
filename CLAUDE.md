@@ -21,7 +21,7 @@ truth.
 
 - **.NET 10+** — latest .NET framework (SDK version pinned per repo in `global.json`)
 - **C# 14+** — latest language features
-- **DAPR 1.16+** — Distributed Application Runtime for microservices
+- **DAPR 1.18+** — Distributed Application Runtime for microservices
 - **.NET Aspire 13.x** — local orchestration of the distributed topology
 - **Microsoft Fluent UI Blazor** — UI component library for Blazor apps
 - **xUnit v3 + Shouldly + NSubstitute** — testing, assertions, mocking
