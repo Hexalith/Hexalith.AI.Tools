@@ -18,3 +18,11 @@ declared at the **root** of the repository; **never** initialize a submodule
 nested inside another submodule. Never use `git submodule update --init --recursive` or
 `--remote`, and de-initialize any nested submodule that gets initialized
 accidentally.
+
+Before committing anything, follow the commit-message rules in
+[CLAUDE.md](CLAUDE.md#commit-messages). **Every** commit — including submodule /
+subproject reference bumps and dependency updates — must start with a
+Conventional Commits `type:` prefix (e.g.
+`chore(deps): bump Hexalith.Memories submodule to 27bebfa`), or commitlint fails
+with `type-empty` / `subject-empty`. Never use git's default
+`Update subproject reference …` message verbatim.

@@ -301,10 +301,28 @@ Rules: imperative mood, lowercase start, no trailing period, keep the subject
 under ~50 chars, wrap the body at 72. Breaking changes use `BREAKING CHANGE:` in
 the footer or `!` after the type (`feat!:`) → **major** bump.
 
+**Every commit needs a `type:` prefix — no exceptions.** A subject that starts
+with a plain-English verb (`Update …`, `Add …`, `Fix …`, `Bump …`) is **not**
+conventional: commitlint parses the whole line as the type and fails with
+`type-empty` / `subject-empty`. This most often bites on machine-shaped commits
+that feel like they don't need a type:
+
+- **Submodule / subproject reference bumps** — do **not** use git's default
+  `Update subproject reference for X to latest commit <sha>` message. Rewrite it,
+  e.g. `chore(deps): bump Hexalith.Memories submodule to 27bebfa`.
+- **Dependency version bumps** — `chore(deps): bump Fluent UI Blazor to 5.x`.
+- **Merges, reverts, formatting, config** — still need a type
+  (`chore:`, `revert:`, `style:`, `ci:`).
+
+Never bypass the commit hook (`--no-verify`) to sidestep this. Before committing,
+sanity-check the subject against the format; you can verify the last commit with
+`npx commitlint --last --verbose`.
+
 ```text
 feat(contracts): add SnapshotInterval to EventStoreOptions
 fix(server): prevent duplicate event sequence numbers on concurrent writes
 feat!: rename EventEnvelope.StreamId to AggregateId
+chore(deps): bump Hexalith.Memories submodule to 27bebfa
 ```
 
 ## Branch Naming
