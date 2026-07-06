@@ -15,6 +15,7 @@ Rules for building user interfaces in Hexalith modules.
 - Always reach for the existing FrontComposer / Fluent UI V5 component first.
   Only fall back to custom CSS, HTML, or JavaScript when no such component
   exists.
+- Use Fluent UI theme color roles
 
 ## No theme redefinition
 
