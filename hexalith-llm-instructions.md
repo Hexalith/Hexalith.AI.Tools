@@ -271,6 +271,17 @@ Prefer official docs: `https://aspire.dev`,
 - Test method names use **PascalCase**.
 - **Run test projects individually**; use the `.slnx` for restore/build only, not
   solution-level `dotnet test`.
+- When `dotnet test` or a solution build is environment-blocked, climb the
+  fallback validation ladder before recording validation as blocked:
+  1. Run the most focused lane or test project build/run available.
+  2. For xUnit v3 filters, build the target test project and invoke the built test
+     assembly directly with single-dash `-class` or `-method` arguments; do not rely
+     on project-level `dotnet test --filter` under Microsoft.Testing.Platform.
+  3. Use serialized `-m:1` Release builds for first-failure triage, adding only
+     environment pins such as `-p:NuGetAudit=false` and
+     `-p:MinVerVersionOverride=1.0.0` when needed.
+  4. Record the exact broad-gate blocker separately from the focused evidence that
+     did run, and never weaken the build gate to hide the blocker.
 - Organize tests by aggregate: `{Command}Tests.cs`, `{Event}Tests.cs`,
   `{Query}Tests.cs`, `{Aggregate}Tests.cs`.
 - Integration tests must assert **state-store end-state** (persisted contents),
