@@ -14,7 +14,7 @@ Rules for building user interfaces in Hexalith modules.
   Blazor Fluent UI V5 or FrontComposer.
 - Always reach for the existing FrontComposer / Fluent UI V5 component first.
   Only fall back to custom CSS, HTML, or JavaScript when no such component
-  exists.
+  exists. 
 - Colors come from Fluent UI theme color roles (component `Color` parameters or
   Fluent 2 design tokens), never hard-coded values — see
   [No theme redefinition](#no-theme-redefinition).
@@ -49,3 +49,7 @@ Rules for building user interfaces in Hexalith modules.
 - Do not hide the only primary content behind an accordion interaction. When a
   primary section belongs in an accordion with other sibling sections, expand
   the primary item by default.
+
+## Additional Resources
+
+- [Fluent UI Blazor V5](https://fluentui-blazor-v5.azurewebsites.net/)

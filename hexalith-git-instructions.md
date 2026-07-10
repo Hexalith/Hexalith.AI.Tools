@@ -193,3 +193,7 @@ update, validate and commit each repository's message from that repository root.
   before pushing.
 - Do not force-push unless the user explicitly asks for it and the branch is
   known to be safe to rewrite.
+
+## Additional Resources
+
+- [Conventional Commits](https://www.conventionalcommits.org/)

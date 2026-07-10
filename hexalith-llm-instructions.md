@@ -306,5 +306,3 @@ staging, commit, and push rules. In short:
 
 - [DAPR Documentation](https://docs.dapr.io/)
 - [.NET Aspire](https://learn.microsoft.com/dotnet/aspire)
-- [Fluent UI Blazor](https://www.fluentui-blazor.net/)
-- [Conventional Commits](https://www.conventionalcommits.org/)
