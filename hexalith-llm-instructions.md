@@ -21,23 +21,9 @@ When adding or changing C# code, keep each `.cs` file focused on a single C#
 object/type. Move additional classes, records, structs, interfaces, enums, and
 delegates into their own files named for the object/type.
 
-Before initializing or updating Git submodules, initialize **only** the
-submodules declared in **references/** of the repository; **never** initialize a
-submodule nested inside another submodule. Never use
-`git submodule update --init --recursive` or `--remote`, and de-initialize any
-nested submodule that gets initialized accidentally.
-
-Work on the **`main`** branch by default. Only create or switch to another
-branch when the task genuinely requires it.
-
-Before committing anything, read
-[hexalith-commit-instructions.md](hexalith-commit-instructions.md) and follow
-the Conventional Commits and local commitlint workflow it defines. **Every**
-commit — including submodule / subproject reference bumps and dependency
-updates — must start with a Conventional Commits `type:` prefix (e.g.
-`chore(deps): bump Hexalith.Memories submodule to 27bebfa`), or commitlint fails
-with `type-empty` / `subject-empty`. Never use git's default
-`Update subproject reference …` message verbatim.
+Before any Git work — staging, committing, pushing, branching, or updating
+submodules — read [hexalith-git-instructions.md](hexalith-git-instructions.md)
+and follow it (essentials in [Git](#git) below).
 
 ## Technology Stack
 
@@ -61,7 +47,7 @@ capabilities) and **domain modules** (business domains built on the platform).
 | [Hexalith.PolymorphicSerializations](https://github.com/Hexalith/Hexalith.PolymorphicSerializations) | Polymorphic JSON serialization |
 | [Hexalith.EventStore](https://github.com/Hexalith/Hexalith.EventStore) | DAPR-native event sourcing / domain-service SDK |
 | [Hexalith.Tenants](https://github.com/Hexalith/Hexalith.Tenants) | Multi-tenancy domain module |
-| [Hexalith.Tenants](https://github.com/Hexalith/Hexalith.Parties) | Parties domain module |
+| [Hexalith.Parties](https://github.com/Hexalith/Hexalith.Parties) | Parties domain module |
 | [Hexalith.FrontComposer](https://github.com/Hexalith/Hexalith.FrontComposer) | UI composition / front-end shell |
 | [Hexalith.AI.Tools](https://github.com/Hexalith/Hexalith.AI.Tools) | AI-agent instructions, skills, workflows, commands, jobs |
 
@@ -93,7 +79,7 @@ package per layer. A module `Hexalith.{Module}` is organized as:
 │   │   │   ├── Hexalith.{Module}.Abstractions/              # Domain interfaces, value objects
 │   │   │   └── Hexalith.{Module}.Events/                    # Domain events
 │   │   ├── Application/
-│   │   │   ├── Hexalith.{Module}.Commands/                  # CQRS command definitions
+│   │   │   ├── Hexalith.{Module}.Commands/                  # CQRS command definitions & validators
 │   │   │   ├── Hexalith.{Module}.Requests/                  # Queries & view models
 │   │   │   ├── Hexalith.{Module}.Application/               # Command & query handlers
 │   │   │   ├── Hexalith.{Module}.Application.Abstractions/  # Application interfaces
@@ -111,25 +97,6 @@ package per layer. A module `Hexalith.{Module}` is organized as:
 └── test/
     └── Hexalith.{Module}.Tests/        # Unit & integration tests
 ```
-
-### Layer Responsibilities
-
-| Package | Layer | Contents |
-| ------- | ----- | -------- |
-| `Hexalith.{Module}` | Domain | Aggregate roots, entities, value objects, state |
-| `Hexalith.{Module}.Abstractions` | Domain | Domain interfaces, shared value objects |
-| `Hexalith.{Module}.Events` | Domain | Domain events |
-| `Hexalith.{Module}.Commands` | Application | Command definitions, validators |
-| `Hexalith.{Module}.Requests` | Application | Query definitions, view models |
-| `Hexalith.{Module}.Application` | Application | Command & query handlers, services |
-| `Hexalith.{Module}.Projections` | Application | Event projections, read-model handlers |
-| `Hexalith.{Module}.Servers` | Infrastructure | Shared server utilities |
-| `Hexalith.{Module}.ApiServer` | Infrastructure | REST API controllers, modules |
-| `Hexalith.{Module}.WebServer` | Infrastructure | Web server implementation |
-| `Hexalith.{Module}.WebApp` | Infrastructure | Blazor web application |
-| `Hexalith.{Module}.UI.Components` | Presentation | Reusable Blazor component library |
-| `Hexalith.{Module}.UI.Pages` | Presentation | Page-level Blazor components |
-| `Hexalith.{Module}.Localizations` | Presentation | i18n resources |
 
 ### Dependency Flow (outer depends on inner)
 
@@ -150,21 +117,16 @@ Presentation → Infrastructure → Application → Domain → Abstractions
 
 Domain modules built on `Hexalith.EventStore` **must be domain-centric** —
 aggregates, commands, events, projections, query handlers, validators, and
-contracts only. The platform supplies all run-time boilerplate via the
-**domain-service SDK**.
+contracts only. The platform supplies all run-time boilerplate through the
+**domain-service SDK**; the persistence rules and SDK seams (two-line host,
+`IDomainQueryHandler`, `IDomainProjectionHandler`, `IReadModelStore` +
+`ReadModelWritePolicy`, `IQueryCursorCodec` / `QueryCursorScope`) are defined
+in [hexalith-state-instructions.md](hexalith-state-instructions.md).
 
-- A domain module **must not** ship its own `*.AppHost`, `*.Aspire`, or
-  `*.ServiceDefaults` project, and **must not** re-implement projection/query
-  actors, DAPR wiring, telemetry sources, health checks, or event-subscription
-  plumbing. If a capability is missing, add it to the platform, not the domain.
-- **Host shape** — `Program.cs` is two lines:
-  `builder.AddEventStoreDomainService();` then `app.UseEventStoreDomainService();`.
-- **Queries** — implement `IDomainQueryHandler` (one per query type); the SDK
-  discovers, registers, and routes them.
-- **Projections** — implement `IDomainProjectionHandler`; the SDK maps `/project`.
-- **Persisted read models** — use `IReadModelStore` + `ReadModelWritePolicy`;
-  **pagination cursors** — use `IQueryCursorCodec` / `QueryCursorScope`.
-  Do not hand-roll a state store or cursor codec.
+A domain module **must not** ship its own `*.AppHost`, `*.Aspire`, or
+`*.ServiceDefaults` project, and **must not** re-implement projection/query
+actors, DAPR wiring, telemetry sources, health checks, or event-subscription
+plumbing. If a capability is missing, add it to the platform, not the domain.
 
 ## C# Coding Standards
 
@@ -314,60 +276,23 @@ dotnet publish src/Hexalith.{Module}/Hexalith.{Module}.csproj \
   -p:ContainerArchiveOutputPath=/tmp/{module}.tar.gz
 ```
 
-## Commit Messages
+## Git
 
-All commits **must** follow [Conventional Commits](https://www.conventionalcommits.org/)
-— required for semantic-release to determine version bumps and changelogs. Use
-[hexalith-commit-instructions.md](hexalith-commit-instructions.md) for the
-required local commitlint commands to run before and after committing.
+Read [hexalith-git-instructions.md](hexalith-git-instructions.md) before any Git
+work and follow it — it defines the repository-boundary, branch, submodule,
+staging, commit, and push rules. In short:
 
-Format: `<type>(<optional scope>): <description>`
-
-| Type | Description | Version bump |
-| ---- | ----------- | ------------ |
-| `feat` | New feature | Minor |
-| `fix` | Bug fix | Patch |
-| `perf` | Performance improvement | Patch |
-| `docs` | Documentation only | None |
-| `refactor` | Code change, no feature/fix | None |
-| `test` | Add/modify tests | None |
-| `build` / `ci` / `chore` / `style` | Tooling, build, formatting | None |
-
-Rules: imperative mood, lowercase start, no trailing period, keep the subject
-under ~50 chars, wrap the body at 72. Breaking changes use `BREAKING CHANGE:` in
-the footer or `!` after the type (`feat!:`) → **major** bump.
-
-**Every commit needs a `type:` prefix — no exceptions.** A subject that starts
-with a plain-English verb (`Update …`, `Add …`, `Fix …`, `Bump …`) is **not**
-conventional: it does not match the Conventional Commit header pattern and fails
-with `type-empty` / `subject-empty`. This most often bites on machine-shaped
-commits that feel like they don't need a type:
-
-- **Submodule / subproject reference bumps** — do **not** use git's default
-  `Update subproject reference for X to latest commit <sha>` message. Rewrite it,
-  e.g. `chore(deps): bump Hexalith.Memories submodule to 27bebfa`.
-- **Dependency version bumps** — `chore(deps): bump Fluent UI Blazor to 5.x`.
-- **Merges, reverts, formatting, config** — still need a type
-  (`chore:`, `revert:`, `style:`, `ci:`).
-
-Never bypass the commit hook (`--no-verify`) to sidestep this. Before committing,
-validate the proposed message with the `npx commitlint --edit "$COMMIT_MSG"
---verbose` workflow in
-[hexalith-commit-instructions.md](hexalith-commit-instructions.md). After
-committing, verify the created commit with `npx commitlint --last --verbose`.
-
-```text
-feat(contracts): add SnapshotInterval to EventStoreOptions
-fix(server): prevent duplicate event sequence numbers on concurrent writes
-feat!: rename EventEnvelope.StreamId to AggregateId
-chore(deps): bump Hexalith.Memories submodule to 27bebfa
-```
-
-## Branch Naming
-
-- `feat/<description>` — features and enhancements
-- `fix/<description>` — bug fixes
-- `docs/<description>` — documentation changes
+- **Conventional Commits are mandatory.** Every commit needs a
+  `<type>[scope][!]: <description>` prefix; semantic-release derives version
+  bumps from it. Machine-shaped subjects — git's default `Update subproject
+  reference …` and plain-English `Update …` / `Add …` / `Fix …` / `Bump …` —
+  fail commitlint with `type-empty` / `subject-empty`; rewrite them, e.g.
+  `chore(deps): bump Hexalith.Memories submodule to 27bebfa`.
+- **Never bypass the commit hook** (`--no-verify`); validate with commitlint
+  before and after committing.
+- **Work on `main` by default**; branch only when the task genuinely requires it.
+- **Submodules:** initialize only the root-declared `references/` submodules;
+  never `git submodule update --init --recursive` or `--remote`.
 
 ## CI/CD
 

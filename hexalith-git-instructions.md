@@ -1,4 +1,4 @@
-# Hexalith Commit Instructions
+# Hexalith Git Instructions
 
 These rules apply before creating Git commits in a Hexalith repository and
 before pushing parent-repository commits that bump root-declared `references/`
