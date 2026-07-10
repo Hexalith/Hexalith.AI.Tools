@@ -30,7 +30,9 @@ nested submodule that gets initialized accidentally.
 Work on the **`main`** branch by default. Only create or switch to another
 branch when the task genuinely requires it.
 
-Before committing anything, use a Conventional Commits message and comply to commitlint check. **Every**
+Before committing anything, read
+[hexalith-commit-instructions.md](hexalith-commit-instructions.md) and follow
+the Conventional Commits and local commitlint workflow it defines. **Every**
 commit — including submodule / subproject reference bumps and dependency
 updates — must start with a Conventional Commits `type:` prefix (e.g.
 `chore(deps): bump Hexalith.Memories submodule to 27bebfa`), or commitlint fails
@@ -315,7 +317,9 @@ dotnet publish src/Hexalith.{Module}/Hexalith.{Module}.csproj \
 ## Commit Messages
 
 All commits **must** follow [Conventional Commits](https://www.conventionalcommits.org/)
-— required for semantic-release to determine version bumps and changelogs.
+— required for semantic-release to determine version bumps and changelogs. Use
+[hexalith-commit-instructions.md](hexalith-commit-instructions.md) for the
+required local commitlint commands to run before and after committing.
 
 Format: `<type>(<optional scope>): <description>`
 
@@ -335,9 +339,9 @@ the footer or `!` after the type (`feat!:`) → **major** bump.
 
 **Every commit needs a `type:` prefix — no exceptions.** A subject that starts
 with a plain-English verb (`Update …`, `Add …`, `Fix …`, `Bump …`) is **not**
-conventional: commitlint parses the whole line as the type and fails with
-`type-empty` / `subject-empty`. This most often bites on machine-shaped commits
-that feel like they don't need a type:
+conventional: it does not match the Conventional Commit header pattern and fails
+with `type-empty` / `subject-empty`. This most often bites on machine-shaped
+commits that feel like they don't need a type:
 
 - **Submodule / subproject reference bumps** — do **not** use git's default
   `Update subproject reference for X to latest commit <sha>` message. Rewrite it,
@@ -347,8 +351,10 @@ that feel like they don't need a type:
   (`chore:`, `revert:`, `style:`, `ci:`).
 
 Never bypass the commit hook (`--no-verify`) to sidestep this. Before committing,
-sanity-check the subject against the format; you can verify the last commit with
-`npx commitlint --last --verbose`.
+validate the proposed message with the `npx commitlint --edit "$COMMIT_MSG"
+--verbose` workflow in
+[hexalith-commit-instructions.md](hexalith-commit-instructions.md). After
+committing, verify the created commit with `npx commitlint --last --verbose`.
 
 ```text
 feat(contracts): add SnapshotInterval to EventStoreOptions
@@ -373,7 +379,6 @@ chore(deps): bump Hexalith.Memories submodule to 27bebfa
 
 ## Additional Resources
 
-- [Hexalith Documentation](https://github.com/Hexalith/Hexalith)
 - [DAPR Documentation](https://docs.dapr.io/)
 - [.NET Aspire](https://learn.microsoft.com/dotnet/aspire)
 - [Fluent UI Blazor](https://www.fluentui-blazor.net/)
