@@ -290,6 +290,17 @@ staging, commit, and push rules. In short:
   `chore(deps): bump Hexalith.Memories submodule to 27bebfa`.
 - **Never bypass the commit hook** (`--no-verify`); validate with commitlint
   before and after committing.
+- **Pull-request titles can become squash-commit subjects.** Choose and
+  commitlint-validate an explicit Conventional Commit title, while still
+  rejecting commitlint-ignored defaults; bind creation to the inspected
+  repository, pushed head, and `main`; then use the non-empty PR URL for all
+  later operations. Never accept a branch-derived UI/CLI default.
+- **Before requesting a merge,** validate the live title, `main` base, and head;
+  wait for the reported PR-head checks; then require exact pre/post title and
+  head equality plus a `main` base before locking the merge to that head. Supply
+  the validated squash subject explicitly and never pass `--auto` or `--admin`.
+  When a merge queue is required, wait for its later checks before reporting
+  the merge complete, and stop if the queue does not succeed.
 - **Work on `main` by default**; branch only when the task genuinely requires it.
 - **Submodules:** initialize only the root-declared `references/` submodules;
   never `git submodule update --init --recursive` or `--remote`.
