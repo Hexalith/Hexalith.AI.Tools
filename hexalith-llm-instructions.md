@@ -31,7 +31,7 @@ and follow it (essentials in [Git](#git) below).
 - **C# 14+** — latest language features
 - **DAPR 1.18+** — Distributed Application Runtime for microservices
 - **.NET Aspire 13.x** — local orchestration of the distributed topology
-- **Microsoft Fluent UI Blazor** — UI component library for Blazor apps
+- **Microsoft Fluent UI Blazor V5** — UI component library V5 for Blazor apps
 - **xUnit v3 + Shouldly + NSubstitute** — testing, assertions, mocking
 
 ## Hexalith Ecosystem
@@ -228,6 +228,21 @@ adding a resource, use `aspire add`, pick a version aligned with
 `Aspire.AppHost.Sdk`, and read the integration docs before editing the AppHost.
 Prefer official docs: `https://aspire.dev`,
 `https://learn.microsoft.com/dotnet/aspire`.
+
+### Library References & Build Configuration
+
+How you reference other Hexalith libraries and which build configuration you
+produce depends on the environment:
+
+- **Development environments (local development and testing):** reference
+  Hexalith libraries by **project reference** and build **Debug** assets only.
+  Project references let you edit, step through, and debug the actual library
+  sources (across submodules) in the same solution, and Debug assets keep full
+  symbols and diagnostics available.
+- **CI/CD:** reference Hexalith libraries by **NuGet package reference only** and
+  produce **Release** assets only. Never rely on project references or Debug
+  output in a CI/CD pipeline — CI/CD validates and ships the same packaged,
+  optimized artifacts that consumers restore.
 
 ## Testing Standards
 
