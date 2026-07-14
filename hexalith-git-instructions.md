@@ -205,7 +205,7 @@ Use this subject format:
 | `docs` | Documentation only | None |
 | `refactor` | Code change, no feature/fix | None |
 | `test` | Add/modify tests | None |
-| `build` / `ci` / `chore` / `style` | Tooling, build, formatting | None |
+| `build` / `ci` / `style` | Tooling, build, formatting | None |
 
 - The colon must be followed by a space: `feat: add projection replay`, not
   `feat:add projection replay` or `feat:Add projection replay`.
@@ -215,7 +215,11 @@ Use this subject format:
 - Choose the type by release impact: `feat` for new user-visible capability,
   `fix` or `perf` for patch releases, `docs` for documentation, `test` for
   tests, `refactor` for behavior-preserving code changes, and `build`, `ci`,
-  `chore`, or `style` for maintenance.
+  or `style` for maintenance.
+- **Never use the `chore` type.** It hides the nature of the change; pick the
+  specific type that describes the work instead: `build(deps)` for dependency
+  and submodule bumps, `ci` for pipeline changes, `style` for formatting,
+  `build` for other tooling and configuration, or `fix` for code change.
 - Do not use `feat` for pure refactoring, test-only work, dependency bumps, or
   submodule pointer updates.
 - Breaking changes use `BREAKING CHANGE:` in the footer or `!` after the type
@@ -231,7 +235,7 @@ Valid examples:
 docs: add commitlint workflow instructions
 test(integration): add round-trip counter coverage
 refactor(testing): reorganize integration test fixtures
-chore(deps): bump Hexalith.Memories submodule to 27bebfa
+build(deps): bump Hexalith.Memories submodule to 27bebfa
 fix(server): prevent duplicate event sequence numbers
 feat!: rename EventEnvelope.StreamId to AggregateId
 ```
@@ -242,7 +246,11 @@ Invalid examples:
 feat:Refactor integration tests and add round-trip counter aggregate
 Update subproject reference for Hexalith.Memories
 Add commit instructions
+chore(deps): bump Hexalith.Memories submodule
 ```
+
+The last example fails the `chore` prohibition, not commitlint: use
+`build(deps)` instead.
 
 ## Submodule And Dependency Commits
 
@@ -251,8 +259,8 @@ valid Conventional Commit. Rewrite submodule, dependency, merge, revert,
 formatting, and configuration commits explicitly:
 
 ```text
-chore(deps): bump Hexalith.AI.Tools submodule
-chore(deps): bump Fluent UI Blazor to 5.x
+build(deps): bump Hexalith.AI.Tools submodule
+build(deps): bump Fluent UI Blazor to 5.x
 revert: restore previous event envelope naming
 ci: update release package validation
 ```

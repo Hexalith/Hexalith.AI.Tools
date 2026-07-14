@@ -302,7 +302,8 @@ staging, commit, and push rules. In short:
   bumps from it. Machine-shaped subjects — git's default `Update subproject
   reference …` and plain-English `Update …` / `Add …` / `Fix …` / `Bump …` —
   fail commitlint with `type-empty` / `subject-empty`; rewrite them, e.g.
-  `chore(deps): bump Hexalith.Memories submodule to 27bebfa`.
+  `build(deps): bump Hexalith.Memories submodule to 27bebfa`. Never use the
+  `chore` type — pick the specific type that describes the work instead.
 - **Never bypass the commit hook** (`--no-verify`); validate with commitlint
   before and after committing.
 - **Pull-request titles can become squash-commit subjects.** Choose and
