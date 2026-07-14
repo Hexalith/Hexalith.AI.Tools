@@ -19,6 +19,9 @@ superproject last, so the superproject commit picks up the updated submodule poi
   (`git push origin --delete`).
 - Only delete local branches with `git branch -d` (safe delete, refuses non-merged branches).
   Never use `-D`.
+- Use Conventional Commit subjects for every commit and merge (this skill uses `build:` — see
+  steps 3 and 6); never the `chore` type, which the Hexalith git rules forbid, and never a
+  machine-shaped subject such as `Update ...`.
 - On a merge conflict: run `git merge --abort` immediately, leave that branch un-merged, record it
   as skipped, and move on to the next branch/repo. Never auto-resolve with `-X ours`/`-X theirs`
   and never hand-edit conflict markers to force a resolution.
@@ -37,14 +40,14 @@ Apply this to one repo directory `<dir>` at a time (a submodule path, or `.` for
 2. Determine the default branch: prefer `main`, else `master`, else
    `git -C <dir> remote show origin | sed -n 's/.*HEAD branch: //p'`.
 3. If `git -C <dir> status --porcelain` is non-empty, stage and commit everything:
-   `git -C <dir> add -A && git -C <dir> commit -m "chore: automated commit via /pushall"`.
+   `git -C <dir> add -A && git -C <dir> commit -m "build: sync local changes via /pushall"`.
 4. `git -C <dir> checkout <default-branch>`
 5. Try `git -C <dir> merge --ff-only origin/<default-branch>` to catch up with the remote first.
    If this fails because local and remote diverged, record it and skip the rest of this repo (do
    not force anything).
 6. For every other local branch (`git -C <dir> branch --format='%(refname:short)'`, excluding the
    default branch):
-   - `git -C <dir> merge --no-ff <branch> -m "chore: merge <branch> into <default-branch> via /pushall"`
+   - `git -C <dir> merge --no-ff <branch> -m "build: merge <branch> into <default-branch> via /pushall"`
    - On conflict: `git -C <dir> merge --abort`, record as skipped, continue to the next branch.
 7. `git -C <dir> push origin <default-branch>`. Record failure and continue if it's rejected — do
    not force-push.
