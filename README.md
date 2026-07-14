@@ -30,3 +30,10 @@ repository's own instructions take precedence on conflict.
   [`hexalith-ux-instructions.md`](./hexalith-ux-instructions.md) (UI / Fluent UI),
   [`hexalith-git-instructions.md`](./hexalith-git-instructions.md)
   (git / commits / commitlint)
+- **Shared skills** — reusable agent skills, kept byte-for-byte identical under
+  `.claude/skills/` (Claude) and `.agents/skills/` (Codex and other agents):
+  - `pushall` — commit, merge, push, and prune across a repository and its
+    root-declared submodules (explicit `/pushall` invocation only)
+  - `aspire` — orchestrate the local distributed topology with the Aspire CLI
+  - `playwright-cli` — browser automation for functional testing of running
+    resources

@@ -1,6 +1,6 @@
 ---
 name: pushall
-description: Commit, merge all local branches into the default branch, push, and prune stale branches/refs across the EventStore repository and every root-declared submodule. Only invoke this directly with /pushall — never trigger it automatically.
+description: Commit, merge all local branches into the default branch, push, and prune stale branches/refs across the current repository and every root-declared submodule. Only invoke this directly with /pushall — never trigger it automatically.
 disable-model-invocation: true
 allowed-tools: Bash(git *)
 ---
