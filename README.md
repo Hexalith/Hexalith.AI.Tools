@@ -33,7 +33,8 @@ repository's own instructions take precedence on conflict.
 - **Shared skills** — reusable agent skills, kept byte-for-byte identical under
   `.claude/skills/` (Claude) and `.agents/skills/` (Codex and other agents):
   - `pushall` — commit, merge, push, and prune across a repository and its
-    root-declared submodules (explicit `/pushall` invocation only)
+    root-declared submodules (explicit `/pushall` invocation only); also mirrored
+    byte-for-byte under `.github/skills/` for GitHub Copilot
   - `aspire` — orchestrate the local distributed topology with the Aspire CLI
   - `playwright-cli` — browser automation for functional testing of running
     resources

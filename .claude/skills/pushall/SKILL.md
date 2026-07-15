@@ -1,36 +1,40 @@
 ---
 name: pushall
-description: Commit, merge all local branches into the default branch, push, and prune stale branches/refs across the current repository and every root-declared submodule. Only invoke this directly with /pushall — never trigger it automatically.
+description: Commit, merge all local and origin remote branches into the default branch, push, and safely prune the merged local and remote branches across the current repository and every root-declared submodule. Only invoke this directly with /pushall — never trigger it automatically.
 disable-model-invocation: true
 allowed-tools: Bash(git *)
 ---
 
-# /pushall — sync, merge, and prune everywhere
+# /pushall — sync, merge, and prune every branch
 
 Runs the same repo-sync procedure in every root-declared submodule (leaf-first), then in the
 superproject last, so the superproject commit picks up the updated submodule pointers.
 
-## Hard rules (never deviate)
+## Required preflight
 
-- Only operate on submodules listed in the root `.gitmodules` (paths under `references/...`).
-  Do not run recursive submodule commands and do not initialize nested submodules. If any nested
-  submodule is initialized by accident, deinitialize it before continuing.
-- Never force-push (`--force` / `--force-with-lease`) and never delete a remote branch
-  (`git push origin --delete`).
+Before running any Git command, read
+`references/Hexalith.AI.Tools/hexalith-git-instructions.md` completely and follow it. Treat it as
+authoritative. If it is unavailable, stop `/pushall` and report the missing instructions.
+
+## /pushall-specific rules (never deviate)
+
 - Only delete local branches with `git branch -d` (safe delete, refuses non-merged branches).
   Never use `-D`.
-- Use Conventional Commit subjects for every commit and merge (this skill uses `build:` — see
-  steps 3 and 6); never the `chore` type, which the Hexalith git rules forbid, and never a
-  machine-shaped subject such as `Update ...`.
-- On a merge conflict: run `git merge --abort` immediately, leave that branch un-merged, record it
-  as skipped, and move on to the next branch/repo. Never auto-resolve with `-X ours`/`-X theirs`
-  and never hand-edit conflict markers to force a resolution.
+- Only delete an `origin` remote branch after its fetched tip is merged into the default branch and
+  that default branch has been pushed successfully. Never delete the remote default branch or
+  `origin/HEAD`. Use `--delete` with an exact expected-OID lease so deletion fails if the branch
+  moved after it was merged.
+- On a merge conflict, inspect the base and both sides and try to resolve it while preserving the
+  intent of both branches. Never auto-resolve with `-X ours`/`-X theirs` or blindly accept one
+  complete side. If a safe resolution cannot be determined or validated, run `git merge --abort`,
+  record that ref as skipped, do not prune it, and continue.
 - If a repo has no remote, push fails, or the local default branch has diverged from
   `origin/<default-branch>` (fast-forward not possible), record it as skipped/failed and continue
   with the rest — never stop the whole run for one repo.
 - Always end each repo back on its default branch, never detached HEAD or a feature branch.
 - Give a one-line progress update per repo as you go, and a final consolidated report (per repo:
-  branches merged, branches deleted, anything skipped/failed, push status).
+  local and remote branches merged, local and remote branches deleted, anything skipped/failed,
+  push status).
 
 ## Per-repo procedure
 
@@ -43,23 +47,43 @@ Apply this to one repo directory `<dir>` at a time (a submodule path, or `.` for
    `git -C <dir> add -A && git -C <dir> commit -m "build: sync local changes via /pushall"`.
 4. `git -C <dir> checkout <default-branch>`
 5. Try `git -C <dir> merge --ff-only origin/<default-branch>` to catch up with the remote first.
-   If this fails because local and remote diverged, record it and skip the rest of this repo (do
-   not force anything).
-6. For every other local branch (`git -C <dir> branch --format='%(refname:short)'`, excluding the
-   default branch):
-   - `git -C <dir> merge --no-ff <branch> -m "build: merge <branch> into <default-branch> via /pushall"`
-   - On conflict: `git -C <dir> merge --abort`, record as skipped, continue to the next branch.
-7. `git -C <dir> push origin <default-branch>`. Record failure and continue if it's rejected — do
-   not force-push.
-8. Delete local branches now fully merged into the default branch (excluding the default branch
+   If this fails because local and remote diverged, record it and skip the rest of this repo.
+6. Build the merge list from both kinds of refs:
+   - Local branches: `git -C <dir> branch --format='%(refname:short)'`, excluding the default
+     branch.
+   - Remote branches: `git -C <dir> for-each-ref
+     --format='%(refname) %(objectname) %(symref)' refs/remotes/origin/`. Exclude symbolic refs and
+     `refs/remotes/origin/<default-branch>`, derive each branch name by removing the
+     `refs/remotes/origin/` prefix, and keep its fetched object ID for the deletion lease in step
+     10.
+7. For every ref in the merge list (local refs first, then `origin` remote refs):
+   - `git -C <dir> merge --no-ff <ref> -m "build: merge <ref> into <default-branch> via /pushall"`
+   - On conflict, list unresolved paths with `git -C <dir> diff --name-only --diff-filter=U`, inspect
+     the base and both sides, and edit the files to preserve compatible changes and intended
+     behavior from both branches.
+   - Stage the resolved paths, verify that no unresolved paths remain, run the repository's most
+     relevant available validation, then complete the merge with `git -C <dir> commit --no-edit`.
+   - If the conflict cannot be resolved safely, unresolved paths remain, or validation fails, run
+     `git -C <dir> merge --abort`, record the ref as skipped, and continue to the next ref.
+8. `git -C <dir> push origin <default-branch>`. Record failure and continue if it's rejected.
+9. Delete local branches now fully merged into the default branch (excluding the default branch
    itself): `git -C <dir> branch --merged <default-branch>` minus the default branch, then
    `git -C <dir> branch -d <each>`.
-9. `git -C <dir> fetch --prune` to drop stale remote-tracking refs.
+10. Only if step 8 succeeded, prune each non-default `origin` branch whose fetched object ID is an
+    ancestor of the default branch:
+    - Verify with `git -C <dir> merge-base --is-ancestor <fetched-object-id> <default-branch>`.
+    - Delete with `git -C <dir> push
+      --force-with-lease=refs/heads/<branch>:<fetched-object-id> origin --delete <branch>`.
+    - If the lease or deletion fails, record the branch as not pruned and continue. Never retry
+      without the exact lease.
+11. `git -C <dir> fetch --all --prune` to remove deleted or otherwise stale remote-tracking refs.
 
 ## Execution order
 
-1. Read the root `.gitmodules` for the declared submodule paths (`references/...`).
-2. Run the per-repo procedure for each submodule path, in the order declared.
-3. Run the per-repo procedure for the superproject (`.`). Its step 3 auto-commit will pick up the
-   updated submodule gitlink pointers from step 2 along with any other superproject changes.
-4. Print the consolidated report.
+1. Complete the required preflight.
+2. Read the root `.gitmodules` for the declared submodule paths (`references/...`).
+3. Run the per-repo procedure for each submodule path, in the order declared.
+4. Run the per-repo procedure for the superproject (`.`). Its step 3 auto-commit will pick up the
+   updated submodule gitlink pointers from the preceding submodule runs along with any other
+   superproject changes.
+5. Print the consolidated report.
