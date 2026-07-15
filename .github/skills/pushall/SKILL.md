@@ -1,14 +1,15 @@
 ---
 name: pushall
-description: Commit, merge all local and origin remote branches into the default branch, push, and safely prune the merged local and remote branches across the current repository and every root-declared submodule. Only invoke this directly with /pushall — never trigger it automatically.
+description: Process every root-declared submodule in its own subagent, then commit, merge, push, and safely prune branches in the main repository after all subagents finish. Only invoke this directly with /pushall — never trigger it automatically.
 disable-model-invocation: true
 allowed-tools: Bash(git *)
 ---
 
 # /pushall — sync, merge, and prune every branch
 
-Runs the same repo-sync procedure in every root-declared submodule (leaf-first), then in the
-superproject last, so the superproject commit picks up the updated submodule pointers.
+Runs the repo-sync procedure for every root-declared submodule in a dedicated subagent. After all
+subagents finish, runs the procedure in the superproject so its commit picks up the updated
+submodule pointers and its push happens last.
 
 ## Required preflight
 
@@ -35,6 +36,29 @@ authoritative. If it is unavailable, stop `/pushall` and report the missing inst
 - Give a one-line progress update per repo as you go, and a final consolidated report (per repo:
   local and remote branches merged, local and remote branches deleted, anything skipped/failed,
   push status).
+
+## Subagent coordination
+
+- Keep the calling agent as the coordinator. It owns only orchestration, the final superproject
+  procedure, and the consolidated report.
+- If subagents are unavailable, stop before modifying any repository and report that `/pushall`
+  requires subagent support. Never fall back to processing submodules in the coordinator.
+- Assign each root-declared submodule path to its own dedicated subagent. Run subagents concurrently
+  up to the available concurrency limit; when capacity is limited, start the remaining dedicated
+  subagents as slots become available.
+- Give each subagent exactly one submodule path and the per-repo procedure below. Require it to read
+  the Git instructions in the required preflight before running Git commands.
+- Restrict each subagent to its assigned submodule repository. It must not run Git commands in the
+  superproject or another submodule, and it must not initialize or process nested submodules.
+- Require each subagent to return a structured result containing its path, default branch, merged
+  refs, deleted local and remote branches, skipped or failed operations, final branch, and push
+  status.
+- Wait for every declared submodule's dedicated subagent to finish with a success, skipped, or
+  failed result. Do not run, commit, or push the superproject while any submodule subagent remains
+  active or unreported.
+- If a subagent fails without a usable result, record that failure and ensure the subagent is no
+  longer running before crossing the barrier. A failed submodule does not cancel the remaining
+  subagents or permit an early superproject push.
 
 ## Per-repo procedure
 
@@ -82,8 +106,13 @@ Apply this to one repo directory `<dir>` at a time (a submodule path, or `.` for
 
 1. Complete the required preflight.
 2. Read the root `.gitmodules` for the declared submodule paths (`references/...`).
-3. Run the per-repo procedure for each submodule path, in the order declared.
-4. Run the per-repo procedure for the superproject (`.`). Its step 3 auto-commit will pick up the
-   updated submodule gitlink pointers from the preceding submodule runs along with any other
-   superproject changes.
-5. Print the consolidated report.
+3. Spawn one dedicated subagent per declared submodule path as described in **Subagent
+   coordination**. Queue launches only when the concurrency limit requires it; never assign two
+   submodule paths to the same subagent.
+4. Collect each finished subagent's structured result and launch queued subagents until every
+   declared submodule has a terminal result.
+5. After the last submodule subagent has finished and none remain active, run the per-repo procedure
+   for the superproject (`.`). Its step 3 auto-commit will pick up the updated submodule gitlink
+   pointers from the completed submodule runs along with any other superproject changes. This is
+   the only point at which the main repository may be pushed.
+6. Print the consolidated report, including every subagent result and the superproject result.
