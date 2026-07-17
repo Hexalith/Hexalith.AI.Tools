@@ -1,20 +1,19 @@
-# AI Assistant Instructions for Developing Hexalith Modules
+# AI assistant instructions
 
-Read `hexalith-llm-instructions.md` (repository root) and follow it. It is the
-authoritative guide for AI assistants (Claude, Codex, Copilot, Cursor, …)
-developing **Hexalith .NET modules**, and it links to the topical instruction
-files (`hexalith-state-instructions.md`, `hexalith-ux-instructions.md`,
-`hexalith-commit-instructions.md`) to read before persistence, UI, and commit
-work. `Hexalith.AI.Tools` is the home for these instructions (and for the
-matching skills, workflows, commands, and job automation). When this repository
-is referenced as a submodule from a Hexalith module, treat these instructions
-as the baseline; the consuming repository's own instructions may add
-module-specific rules that take precedence on conflict.
+Before working in this repository, read
+[`hexalith-llm-instructions.md`](references/Hexalith.AI.Tools/hexalith-llm-instructions.md)
+(in the `references/Hexalith.AI.Tools` submodule) and follow it.
 
-**Do not modify the AI-assistant entrypoint files.** `CLAUDE.md` (Claude),
-`AGENTS.md` (Codex / agents), and `.github/copilot-instructions.md` (GitHub
-Copilot) are kept **byte-for-byte identical** — each tool reads its own file but
-gets exactly the same instructions. Never edit any of them as part of ordinary
-module work, in this repository or in a consuming module; when these
-instructions must change, update all three together as a deliberate, separate
-task.
+## Agent Skills
+
+- For this section, the repository root is the directory containing this instruction file, regardless of the current working directory. An agent skill is a `SKILL.md` manifest and its supporting files when treated as an available skill.
+- Never discover (register or select as available), load, or execute an agent skill when either its discovery path or resolved canonical path is inside the repository root's `references/` directory. Incidental filename matches during ordinary source searches are not skill discovery.
+- If tooling exposes a skill from `references/`, or a user names one explicitly, do not open it as a skill. Continue without it and use an allowed alternative if one is available.
+- Use only skills located outside the root `references/` tree, such as root-workspace or user-environment skills.
+- This restriction applies only to agent skills. Continue to read non-skill instructions, documentation, and source files in `references/` when required by the task or repository instructions.
+
+## Git Submodules
+
+- Initialize root-declared submodules only, using the `references/...` paths declared in the root `.gitmodules` file.
+- Avoid recursive submodule commands unless they are explicitly scoped so that nested submodules are not initialized.
+- If nested submodules are initialized accidentally, deinitialize them before continuing.
