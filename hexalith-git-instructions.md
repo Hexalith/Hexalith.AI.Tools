@@ -205,6 +205,7 @@ Use this subject format:
 | `docs` | Documentation only | None |
 | `refactor` | Code change, no feature/fix | None |
 | `test` | Add/modify tests | None |
+| `revert` | Revert a previous commit | None |
 | `build` / `ci` / `style` | Tooling, build, formatting | None |
 
 - The colon must be followed by a space: `feat: add projection replay`, not
