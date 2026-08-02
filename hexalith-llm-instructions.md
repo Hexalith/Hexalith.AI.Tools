@@ -304,6 +304,11 @@ staging, commit, and push rules. In short:
   fail commitlint with `type-empty` / `subject-empty`; rewrite them, e.g.
   `build(deps): bump Hexalith.Memories submodule to 27bebfa`. Never use the
   `chore` type — pick the specific type that describes the work instead.
+- **Assistants (Claude, Codex, Cursor, Copilot) must validate** every commit
+  message or squashable PR title they create, suggest, or use with the owning
+  repository's pinned commitlint CLI before presenting or applying it. If
+  validation fails or cannot run, revise or stop; never claim compliance
+  without evidence.
 - **Never bypass the commit hook** (`--no-verify`); validate with commitlint
   before and after committing.
 - **Pull-request titles can become squash-commit subjects.** Choose and

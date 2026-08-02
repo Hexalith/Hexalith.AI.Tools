@@ -9,10 +9,10 @@ commands, and job automation.
 Three entrypoints, kept **byte-for-byte identical** — each tool reads its own
 file but gets exactly the same instructions:
 
-- [`CLAUDE.md`](./CLAUDE.md) — read by Claude (and Cursor).
+- [`CLAUDE.md`](./CLAUDE.md) — read by Claude and Cursor.
 - [`AGENTS.md`](./AGENTS.md) — read by Codex and other agents.
 - [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) — read
-  by GitHub Copilot.
+  by GitHub Copilot (and Visual Studio when repository instructions are enabled).
 
 Each entrypoint points to
 [`hexalith-llm-instructions.md`](./hexalith-llm-instructions.md), the
