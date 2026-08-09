@@ -9,6 +9,11 @@
 > circular reference. If a rule lives elsewhere, inline it here instead of
 > linking out.
 
+When opening files or folders via the command line, always pass the `-r` flag to
+open them in the current window without replacing the workspace, or pass `-n` to
+force a brand-new window. Never run a command that reloads or replaces the active
+workspace window.
+
 Before persisting any data in a Hexalith domain module, read
 [hexalith-state-instructions.md](hexalith-state-instructions.md) and follow the
 data-persistence rules it defines (domain modules use **Hexalith.EventStore**).
