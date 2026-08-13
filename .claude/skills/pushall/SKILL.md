@@ -19,6 +19,8 @@ authoritative. If it is unavailable, stop `/pushall` and report the missing inst
 
 ## /pushall-specific rules (never deviate)
 
+- Do not invoke `bmad-build` or any other BMad skill during `/pushall`; execute simple Git
+  operations such as commits and pushes directly through this skill's procedure.
 - Only delete local branches with `git branch -d` (safe delete, refuses non-merged branches).
   Never use `-D`.
 - Only delete an `origin` remote branch after its fetched tip is merged into the default branch and
