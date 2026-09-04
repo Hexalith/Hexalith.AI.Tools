@@ -207,6 +207,7 @@ Use this subject format:
 | `test` | Add/modify tests | None |
 | `revert` | Revert a previous commit | None |
 | `build` / `ci` / `style` | Tooling, build, formatting | None |
+| `chore` | General maintenance with no more specific type | None |
 
 - The colon must be followed by a space: `feat: add projection replay`, not
   `feat:add projection replay` or `feat:Add projection replay`.
@@ -216,11 +217,9 @@ Use this subject format:
 - Choose the type by release impact: `feat` for new user-visible capability,
   `fix` or `perf` for patch releases, `docs` for documentation, `test` for
   tests, `refactor` for behavior-preserving code changes, and `build`, `ci`,
-  or `style` for maintenance.
-- **Never use the `chore` type.** It hides the nature of the change; pick the
-  specific type that describes the work instead: `build(deps)` for dependency
-  and submodule bumps, `ci` for pipeline changes, `style` for formatting,
-  `build` for other tooling and configuration, or `fix` for code change.
+  or `style` for their specific maintenance categories. Use `chore` only when
+  the owning repository's effective commitlint policy allows it and no more
+  specific type describes the maintenance work.
 - Do not use `feat` for pure refactoring, test-only work, dependency bumps, or
   submodule pointer updates.
 - Breaking changes use `BREAKING CHANGE:` in the footer or `!` after the type
@@ -237,6 +236,7 @@ docs: add commitlint workflow instructions
 test(integration): add round-trip counter coverage
 refactor(testing): reorganize integration test fixtures
 build(deps): bump Hexalith.Memories submodule to 27bebfa
+chore: update subproject references
 fix(server): prevent duplicate event sequence numbers
 feat!: rename EventEnvelope.StreamId to AggregateId
 ```
@@ -247,11 +247,11 @@ Invalid examples:
 feat:Refactor integration tests and add round-trip counter aggregate
 Update subproject reference for Hexalith.Memories
 Add commit instructions
-chore(deps): bump Hexalith.Memories submodule
+unknown: update dependencies
 ```
 
-The last example fails the `chore` prohibition, not commitlint: use
-`build(deps)` instead.
+The last example uses a type that is outside the repository's effective
+allowlist.
 
 ## Submodule And Dependency Commits
 

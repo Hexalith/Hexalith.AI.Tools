@@ -307,8 +307,10 @@ staging, commit, and push rules. In short:
   bumps from it. Machine-shaped subjects — git's default `Update subproject
   reference …` and plain-English `Update …` / `Add …` / `Fix …` / `Bump …` —
   fail commitlint with `type-empty` / `subject-empty`; rewrite them, e.g.
-  `build(deps): bump Hexalith.Memories submodule to 27bebfa`. Never use the
-  `chore` type — pick the specific type that describes the work instead.
+  `build(deps): bump Hexalith.Memories submodule to 27bebfa`. Use the most
+  specific type allowed by the owning repository's effective commitlint policy;
+  `chore` is valid for maintenance when that policy allows it and no more
+  specific type describes the work.
 - **Assistants (Claude, Codex, Cursor, Copilot) must validate** every commit
   message or squashable PR title they create, suggest, or use with the owning
   repository's pinned commitlint CLI before presenting or applying it. If
