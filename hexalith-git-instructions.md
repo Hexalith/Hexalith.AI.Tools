@@ -207,7 +207,7 @@ Use this subject format:
 | `test` | Add/modify tests | None |
 | `revert` | Revert a previous commit | None |
 | `build` / `ci` / `style` | Tooling, build, formatting | None |
-| `chore` | General maintenance with no more specific type | None |
+| `chore` | General maintenance | None |
 
 - The colon must be followed by a space: `feat: add projection replay`, not
   `feat:add projection replay` or `feat:Add projection replay`.
@@ -217,9 +217,9 @@ Use this subject format:
 - Choose the type by release impact: `feat` for new user-visible capability,
   `fix` or `perf` for patch releases, `docs` for documentation, `test` for
   tests, `refactor` for behavior-preserving code changes, and `build`, `ci`,
-  or `style` for their specific maintenance categories. Use `chore` only when
-  the owning repository's effective commitlint policy allows it and no more
-  specific type describes the maintenance work.
+  or `style` for their maintenance categories. Choose an accurate type;
+  `chore` is valid for general maintenance whenever the owning repository's
+  effective commitlint policy allows it.
 - Do not use `feat` for pure refactoring, test-only work, dependency bumps, or
   submodule pointer updates.
 - Breaking changes use `BREAKING CHANGE:` in the footer or `!` after the type
@@ -236,7 +236,7 @@ docs: add commitlint workflow instructions
 test(integration): add round-trip counter coverage
 refactor(testing): reorganize integration test fixtures
 build(deps): bump Hexalith.Memories submodule to 27bebfa
-chore: update subproject references
+chore: update subproject references for Hexalith.FrontComposer and Hexalith.Tenants
 fix(server): prevent duplicate event sequence numbers
 feat!: rename EventEnvelope.StreamId to AggregateId
 ```
