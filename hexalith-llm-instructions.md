@@ -300,37 +300,7 @@ dotnet publish src/Hexalith.{Module}/Hexalith.{Module}.csproj \
 
 Read [hexalith-git-instructions.md](hexalith-git-instructions.md) before any Git
 work and follow it — it defines the repository-boundary, branch, submodule,
-staging, commit, and push rules. In short:
-
-- **Conventional Commits are mandatory.** Every commit needs a
-  `<type>[scope][!]: <description>` prefix; semantic-release derives version
-  bumps from it. Machine-shaped subjects — git's default `Update subproject
-  reference …` and plain-English `Update …` / `Add …` / `Fix …` / `Bump …` —
-  fail commitlint with `type-empty` / `subject-empty`; rewrite them, e.g.
-  `build(deps): bump Hexalith.Memories submodule to 27bebfa`. Use an accurate
-  type allowed by the owning repository's effective commitlint policy; `chore`
-  is valid for general maintenance whenever that policy allows it.
-- **Assistants (Claude, Codex, Cursor, Copilot) must validate** every commit
-  message or squashable PR title they create, suggest, or use with the owning
-  repository's pinned commitlint CLI before presenting or applying it. If
-  validation fails or cannot run, revise or stop; never claim compliance
-  without evidence.
-- **Never bypass the commit hook** (`--no-verify`); validate with commitlint
-  before and after committing.
-- **Pull-request titles can become squash-commit subjects.** Choose and
-  commitlint-validate an explicit Conventional Commit title, while still
-  rejecting commitlint-ignored defaults; bind creation to the inspected
-  repository, pushed head, and `main`; then use the non-empty PR URL for all
-  later operations. Never accept a branch-derived UI/CLI default.
-- **Before requesting a merge,** validate the live title, `main` base, and head;
-  wait for the reported PR-head checks; then require exact pre/post title and
-  head equality plus a `main` base before locking the merge to that head. Supply
-  the validated squash subject explicitly and never pass `--auto` or `--admin`.
-  When a merge queue is required, wait for its later checks before reporting
-  the merge complete, and stop if the queue does not succeed.
-- **Work on `main` by default**; branch only when the task genuinely requires it.
-- **Submodules:** initialize only the root-declared `references/` submodules;
-  never `git submodule update --init --recursive` or `--remote`.
+staging, commit, and push rules.
 
 ## CI/CD
 
