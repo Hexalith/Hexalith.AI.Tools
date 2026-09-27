@@ -62,6 +62,22 @@ DI setup, UI scaffolding, test harness helpers), **do not duplicate it** — reu
 the technical module that provides it, or add it to that technical module first,
 then consume it.
 
+## Hexalith MCP and CLI ownership
+
+`Hexalith.McpCli` is the target Hexalith-owned MCP server and CLI for domain,
+platform, and operator capabilities. Do not create a new proprietary
+per-module MCP server, MCP plug-in, or CLI. Gateway-ready operations are
+declared in decorated module Contracts and enrolled in McpCli. Infrastructure
+administration, resources, and other non-gateway capabilities need an
+approved generic McpCli contract and transport decision before migration.
+
+Existing proprietary Hexalith module MCP/CLI packages are obsolete migration
+sources. Limit them to safety and continuity fixes, inventory every operation
+with its owning maintainer, and retire each only after an approved McpCli
+replacement or explicit withdrawal passes authorization and behavior gates.
+External developer tools such as Aspire, Dapr, and `dotnet` CLIs are outside
+this rule.
+
 ## Solution Files
 
 **Use the `.slnx` solution only** (modern XML solution format). Never create or
