@@ -53,7 +53,8 @@ gates remain open; they are migration sources, never new-module templates.
 
 ## Commit validation
 
-Install the pinned validation tools with `npm ci`. Before creating a commit,
+Use **Node.js 22.12.0 or later** for the pinned commitlint tools.
+Install them with `npm ci`. Before creating a commit,
 validate its exact full message with `npx --no -- commitlint --verbose` on
 standard input. `package.json` and `package-lock.json` pin the CLI and
 Conventional Commits policy; no production dependencies are installed.
