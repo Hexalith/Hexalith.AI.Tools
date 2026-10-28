@@ -78,6 +78,12 @@ replacement or explicit withdrawal passes authorization and behavior gates.
 External developer tools such as Aspire, Dapr, and `dotnet` CLIs are outside
 this rule.
 
+Follow the versioned
+[Hexalith MCP and CLI migration plan](hexalith-mcpcli-migration-instructions.md)
+for frozen implementations, immutable inventories, approval limits and
+retirement prerequisites. Retained compatibility implementations are never
+templates for new modules.
+
 ## Solution Files
 
 **Use the `.slnx` solution only** (modern XML solution format). Never create or

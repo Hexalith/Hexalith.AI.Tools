@@ -29,7 +29,9 @@ repository's own instructions take precedence on conflict.
   (persistence / event sourcing),
   [`hexalith-ux-instructions.md`](./hexalith-ux-instructions.md) (UI / Fluent UI),
   [`hexalith-git-instructions.md`](./hexalith-git-instructions.md)
-  (git / commits / commitlint)
+  (git / commits / commitlint),
+  [`hexalith-mcpcli-migration-instructions.md`](./hexalith-mcpcli-migration-instructions.md)
+  (versioned MCP/CLI migration index, frozen implementations and owner gates)
 - **Shared skills** — reusable agent skills, kept byte-for-byte identical under
   `.claude/skills/` (Claude) and `.agents/skills/` (Codex and other agents):
   - `pushall` — commit, merge, push, and prune across a repository and its
@@ -38,3 +40,20 @@ repository's own instructions take precedence on conflict.
   - `aspire` — orchestrate the local distributed topology with the Aspire CLI
   - `playwright-cli` — browser automation for functional testing of running
     resources
+
+## MCP and CLI migration
+
+`Hexalith.McpCli` is the target Hexalith-owned MCP server and CLI. Follow the
+[ownership rule](./hexalith-llm-instructions.md#hexalith-mcp-and-cli-ownership)
+and [migration plan 1.0.0](./hexalith-mcpcli-migration-instructions.md) for
+decorated Contracts, frozen legacy servers, plug-ins and CLIs, and the
+outstanding administration scope. Retained implementations receive safety and
+continuity fixes while their approval, authorization, behavior and retirement
+gates remain open; they are migration sources, never new-module templates.
+
+## Commit validation
+
+Install the pinned validation tools with `npm ci`. Before creating a commit,
+validate its exact full message with `npx --no -- commitlint --verbose` on
+standard input. `package.json` and `package-lock.json` pin the CLI and
+Conventional Commits policy; no production dependencies are installed.

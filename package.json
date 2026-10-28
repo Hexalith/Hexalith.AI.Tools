@@ -1,0 +1,10 @@
+{
+  "name": "hexalith-ai-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pinned commit-message validation for Hexalith.AI.Tools",
+  "devDependencies": {
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2"
+  }
+}
