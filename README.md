@@ -45,11 +45,12 @@ repository's own instructions take precedence on conflict.
 
 `Hexalith.McpCli` is the target Hexalith-owned MCP server and CLI. Follow the
 [ownership rule](./hexalith-llm-instructions.md#hexalith-mcp-and-cli-ownership)
-and [migration plan 1.0.0](./hexalith-mcpcli-migration-instructions.md) for
+and [migration plan 1.1.0](./hexalith-mcpcli-migration-instructions.md) for
 decorated Contracts, frozen legacy servers, plug-ins and CLIs, and the
-outstanding administration scope. Retained implementations receive safety and
-continuity fixes while their approval, authorization, behavior and retirement
-gates remain open; they are migration sources, never new-module templates.
+outstanding administration scope. Retained implementations receive only safety
+and continuity fixes while their approval, authorization, behavior and
+retirement gates remain open; they are migration sources, never new-module
+templates.
 
 ## Commit validation
 

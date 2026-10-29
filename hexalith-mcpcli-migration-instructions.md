@@ -1,12 +1,12 @@
 ---
-plan_version: '1.0.0'
+plan_version: '1.1.0'
 inventory_repository: 'https://github.com/Hexalith/Hexalith.McpCli'
 inventory_revision: 'c694bff5a29073bee6848b88c142f7da23efcf85'
 ---
 
 # Hexalith MCP and CLI migration plan
 
-Version **1.0.0** indexes the retained proprietary migration sources under the
+Version **1.1.0** indexes the retained proprietary migration sources under the
 [Hexalith MCP and CLI ownership rule](hexalith-llm-instructions.md#hexalith-mcp-and-cli-ownership).
 `Hexalith.McpCli` owns the target Hexalith MCP server and CLI for domain,
 platform and operator capabilities. Do not create a new proprietary per-module
@@ -14,7 +14,8 @@ MCP server, MCP plug-in or CLI. Declare gateway-ready operations in decorated
 module Contracts and enroll their approved packages in McpCli. Other capability
 classes require a separately approved generic contract and transport decision.
 External developer CLIs such as Aspire, Dapr and `dotnet` remain outside this
-policy.
+policy, as does Hexalith.Builds build and workspace tooling that never invokes
+module operations, currently `hexalith-module` and `hexalith-evidence`.
 
 ## Frozen compatibility implementations
 
@@ -38,9 +39,13 @@ The inventory links bind exact McpCli revision
 `c694bff5a29073bee6848b88c142f7da23efcf85`. Each inventory records its own full source
 revision, approval reference, security classes, behavior variants, unresolved
 gaps and owning roles. These are immutable inventory snapshots rather than
-links to a moving branch. A later source change or newly discovered surface
-requires a versioned inventory update; absence from this index never authorizes
-a new proprietary implementation or deletion of an existing one.
+links to a moving branch. A later source change that adds, removes or alters an
+inventoried tool, resource, CLI operation or behavior variant, or a newly
+discovered surface, requires a versioned inventory update; a safety or
+continuity fix that leaves them unchanged does not. Absence from this index
+never authorizes a new proprietary implementation or deletion of an existing
+one. Publish every change to this plan under a new `plan_version`, and move
+`inventory_revision` whenever an indexed inventory is re-pinned or added.
 
 ## Approval limits
 
@@ -55,9 +60,12 @@ owner-approved completeness or retirement claim.
 A future inventory revision must identify every tool, resource, CLI operation
 and supported variant with `replace`, `withdraw` or `defer`, a rationale,
 security class, exact replacement contract or unresolved gap, and the owning
-maintainer's approval reference. An included read needs its decorated Contracts
-Query and exact Gateway route. Inventories remain migration/test documentation,
-never runtime configuration or authority to expose a deferred operation.
+maintainer's approval reference. Gateway-ready rows name the canonical
+operation and decorated contract type; `include` requires `replace`, and
+`exclude` requires an approved `withdraw` or `defer`. An included read needs
+its decorated Contracts Query and exact Gateway route. Inventories remain
+migration/test documentation, never runtime configuration or authority to
+expose a deferred operation.
 
 ## Successor administration and non-gateway scope
 

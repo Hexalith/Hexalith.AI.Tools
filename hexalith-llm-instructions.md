@@ -76,7 +76,8 @@ sources. Limit them to safety and continuity fixes, inventory every operation
 with its owning maintainer, and retire each only after an approved McpCli
 replacement or explicit withdrawal passes authorization and behavior gates.
 External developer tools such as Aspire, Dapr, and `dotnet` CLIs are outside
-this rule.
+this rule, as is Hexalith.Builds build and workspace tooling that never invokes
+module operations, currently `hexalith-module` and `hexalith-evidence`.
 
 Follow the versioned
 [Hexalith MCP and CLI migration plan](hexalith-mcpcli-migration-instructions.md)
