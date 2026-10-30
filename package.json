@@ -4,8 +4,8 @@
   "private": true,
   "description": "Pinned commit-message validation for Hexalith.AI.Tools",
   "devDependencies": {
-    "@commitlint/cli": "21.2.2",
-    "@commitlint/config-conventional": "21.2.2"
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4"
   },
   "engines": {
     "node": ">=22.12.0"
