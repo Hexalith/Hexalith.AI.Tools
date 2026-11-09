@@ -42,8 +42,20 @@ checks where they affect commit safety.
 - Never use `git submodule update --init --recursive` or `--remote`.
 - If nested submodules are initialized accidentally, deinitialize them before
   continuing.
-- Commit submodule content changes inside the submodule first. Then commit the
-  parent repository submodule pointer update separately.
+- A request to commit a superproject includes committing and pushing all
+  changes in every submodule declared in its root `.gitmodules`. Inspect
+  each submodule for staged, unstaged, and untracked changes and existing
+  unpushed commits, including work that predates the current task.
+- Commit content changes inside each owning submodule, following its
+  repository guidance and commitlint policy, and push all pending commits
+  before creating the superproject commit. Do not create empty commits in
+  unchanged submodules.
+- Verify that every submodule commit to be recorded is available on its
+  remote, then commit the updated submodule pointers in the superproject
+  separately from the submodule content commits.
+- If a submodule commit, push, or remote verification fails, report the
+  exact command and blocker and stop before creating the superproject
+  commit. Never record a submodule commit that has not been pushed.
 
 
 ## Commit Workflow
