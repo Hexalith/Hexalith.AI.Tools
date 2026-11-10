@@ -34,6 +34,32 @@ checks where they affect commit safety.
   onto the current remote branch when the remote has advanced and the local work
   is a simple linear continuation.
 
+## Push Authentication
+
+- Git reaches GitHub through `gh auth git-credential`, so the push uses the
+  token of the effective `gh` profile. Agent sessions may set `GH_CONFIG_DIR` to
+  a scoped agent profile, for example `~/.config/gh-cicd-agent`.
+- The CiCd-agent token covers only Hexalith.Builds and Hexalith.CiCd. Every
+  other repository rejects its push with HTTP 403 ("Permission to
+  Hexalith/<repo>.git denied"). That is by design, not a broken credential.
+- Before diagnosing a 403, check the effective `GH_CONFIG_DIR`, whether
+  `GH_TOKEN` or `GITHUB_TOKEN` is set (names only, never values), and
+  `gh auth status`. An API `admin: true` describes the account, not the token.
+  Do not retry the same push or ask for new tokens first.
+- When the user explicitly asks for a push in an interactive session and the
+  agent profile does not cover the repository, use the maintainer profile for
+  that single command only:
+
+  ```bash
+  GH_CONFIG_DIR="$HOME/.config/gh" git push origin <branch>
+  ```
+
+- Never change the default profile or run `gh auth setup-git`. Never give
+  unattended sessions, such as BMAD Loop runs, the maintainer profile. Never
+  print credentials or credential-file contents.
+- A maintainer push to a protected `main` may print "Bypassed rule violations"
+  on stderr. Report that line to the user.
+
 ## Submodules
 
 - Initialize or update only submodules declared under `references/` in the root
