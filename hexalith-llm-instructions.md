@@ -78,6 +78,12 @@ replacement or explicit withdrawal passes authorization and behavior gates.
 External developer tools such as Aspire, Dapr, and `dotnet` CLIs are outside
 this rule, as is Hexalith.Builds build and workspace tooling that never invokes
 module operations, currently `hexalith-module` and `hexalith-evidence`.
+Also exempt are `Hexalith.FrontComposer.Cli` (`inspect` and `migrate`) as
+local compiler/developer tooling, and Memories `tools/MigrateEmbeddingVectors`
+(`--dry-run`, `--live`, `--rollback`, `--abort`) as owner-held local operator
+tooling only. These named exemptions never admit an agent-facing server,
+plug-in, Gateway operation or remotely callable tool, never count as a retired
+surface, and do not authorize new proprietary per-module CLIs.
 
 Follow the versioned
 [Hexalith MCP and CLI migration plan](hexalith-mcpcli-migration-instructions.md)

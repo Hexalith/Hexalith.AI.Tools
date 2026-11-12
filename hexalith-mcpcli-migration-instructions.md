@@ -1,12 +1,12 @@
 ---
-plan_version: '1.1.0'
+plan_version: '1.2.0'
 inventory_repository: 'https://github.com/Hexalith/Hexalith.McpCli'
 inventory_revision: 'c694bff5a29073bee6848b88c142f7da23efcf85'
 ---
 
 # Hexalith MCP and CLI migration plan
 
-Version **1.1.0** indexes the retained proprietary migration sources under the
+Version **1.2.0** indexes the retained proprietary migration sources under the
 [Hexalith MCP and CLI ownership rule](hexalith-llm-instructions.md#hexalith-mcp-and-cli-ownership).
 `Hexalith.McpCli` owns the target Hexalith MCP server and CLI for domain,
 platform and operator capabilities. Do not create a new proprietary per-module
@@ -16,6 +16,31 @@ classes require a separately approved generic contract and transport decision.
 External developer CLIs such as Aspire, Dapr and `dotnet` remain outside this
 policy, as does Hexalith.Builds build and workspace tooling that never invokes
 module operations, currently `hexalith-module` and `hexalith-evidence`.
+
+## Named local-tooling exemptions (1.2.0 amendment)
+
+The ownership rule exempts these two existing, narrowly named surfaces from
+McpCli migration. This amendment preserves `inventory_revision` and the six
+historical inventory links below; it neither adds nor re-pins an indexed
+inventory, changes any inventory bytes or dispositions, nor claims parity.
+McpCli Story 5.2 records exact-byte owner approval and the upstream delivery
+state. Until this amendment is approved and merged to authoritative AI.Tools
+`main`, both surfaces stay frozen in the proprietary-surface census. Updating
+that census requires its own versioned owner-approved amendment.
+
+| Exempt surface | Retained local scope | Limits and remaining owner evidence |
+| --- | --- | --- |
+| `Hexalith.FrontComposer.Cli` | `inspect` and `migrate`; local compiler/developer tooling (technical inventory FC01/FC02 and PS03) | Keep explicit build choice and no-build freshness limits, safe canonical target/hash checks, partial-write reporting, import-coverage warnings, parser and output privacy limits. No module operation or agent-facing server, plug-in, Gateway tool or generated McpCli subcommand is admitted. |
+| Memories `tools/MigrateEmbeddingVectors` | Owner-held local operator tooling only: `--dry-run`, `--live`, `--rollback`, `--abort` (technical inventory PS14) | Live/rollback/abort remain tenant-scoped, consent-requiring privileged migration modes; `--yes` grants no public-agent authority. Story 5.10 still inventories every mode and its authorization, state transition, audit and rollback behavior. No mode is exposed through either McpCli head. |
+
+A later inventory amendment records `withdraw` from migration scope for these
+exempt identities; the tools remain supported locally and are never counted as
+retired. No execution, enrollment, deletion or retirement authority follows.
+Their exemptions are not templates or permission for new module CLIs. Existing
+safety, continuity, custody, authorization and source/output privacy obligations
+remain with the FrontComposer and Memories owning maintainers respectively.
+This classification introduces no new McpCli transport or capability beyond
+v1 decorated Commands and Queries.
 
 ## Frozen compatibility implementations
 
@@ -30,7 +55,7 @@ this index does not duplicate their tables or change their dispositions.
 | `Hexalith.Parties.Mcp` | [Parties](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/parties-migration-inventory-v1.md): five MCP tools, six behavioral variants; no proprietary CLI was found at the inventory pin. | Seven intended target operations are `replace / include`; four adjacent scope families are `defer / exclude`. Scope approval alone establishes neither readiness nor retirement. Preserve privacy, identifier, authorization and behavior gates. |
 | `Hexalith.Folders.Mcp`, `Hexalith.Folders.Cli` | [Folders](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/folders-migration-inventory-v1.md): 49 tools, two MCP resources and 42 frozen CLI leaves. | All current rows remain `defer / exclude`; the 48 proposed targets are roadmap candidates. Preserve the existing file, resource, provider and authorization behavior until separately approved replacements pass. |
 | `Hexalith.Projects.Mcp` plug-in, `Hexalith.Projects.Cli` | [Projects](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/projects-migration-inventory-v1.md): 11 resources, five maintenance tools and 18 frozen CLI spellings. | All rows remain `defer / exclude`. Slim decorated Contracts, exact read routes and authorization/behavior evidence remain prerequisites. Coordinate retirement with the FrontComposer host. |
-| `Hexalith.FrontComposer.Mcp` host, `Hexalith.FrontComposer.Cli` | [FrontComposer](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/frontcomposer-migration-inventory-v1.md): one configurable-name lifecycle tool, 13 framework documentation resources, two local compiler CLI leaves, plus manifest-defined families. | All rows remain `defer / exclude`. Projects operations are counted in their companion inventory. Inventory other manifest consumers and approve generic lifecycle/resource/compiler treatment before the shared host and Projects plug-in retire together. |
+| `Hexalith.FrontComposer.Mcp` host (compiler CLI separately exempt above) | [FrontComposer](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/frontcomposer-migration-inventory-v1.md): one configurable-name lifecycle tool, 13 framework documentation resources, two local compiler CLI leaves, plus manifest-defined families. | All rows remain `defer / exclude`. Projects operations are counted in their companion inventory. Inventory other manifest consumers and approve generic lifecycle/resource treatment before the shared host and Projects plug-in retire together. The compiler CLI remains retained local tooling under the named exemption above. |
 | `Hexalith.ChatBot.Mcp`, `Hexalith.ChatBot.Cli` | [ChatBot](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/chatbot-migration-inventory-v1.md): 12 MCP tools and 12 frozen CLI leaves. | All rows remain `defer / exclude`. Preserve governed workflows, admission, approval, identity and behavior; plain Commands and REST DTOs do not establish decorated Gateway readiness. |
 | `Hexalith.Memories.Mcp`, `Hexalith.Memories.Cli` | [Memories](https://github.com/Hexalith/Hexalith.McpCli/blob/c694bff5a29073bee6848b88c142f7da23efcf85/_bmad-output/implementation-artifacts/memories-migration-inventory-v1.md): four HTTP MCP tools, 14 implemented frozen CLI leaves and four registered stubs. | All rows remain `defer / exclude`. The Legacy Server cannot retire before the later HTTP release supports forwarded per-user identity; exact tenant/user authorization, administrative scope, semantic behavior and release/rollback evidence must also pass. |
 | `Hexalith.EventStore.Admin.Mcp`, `Hexalith.EventStore.Admin.Cli` | Successor administration inventory outstanding; no approved operation mapping or completeness claim is supplied by this index. | Retain the existing administration surfaces. The EventStore and platform/operator owners must inventory every operation and approve its replacement, withdrawal or deferral, including destructive and confirmation-required behavior, before any cutover. |
