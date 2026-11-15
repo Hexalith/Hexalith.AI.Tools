@@ -3,11 +3,12 @@
 > **Authoring rule for this file:** Keep it self-contained. Reference **only**
 > the topical instruction files that live in this same folder
 > (`references/Hexalith.AI.Tools/`, e.g. `hexalith-state-instructions.md` and
-> `hexalith-ux-instructions.md`). Never link to a file outside this folder, and
-> never link to the agent-instruction entry points that already point here
+> `hexalith-ux-instructions.md`). The sole outside-folder policy-file exception
+> is the canonical Hexalith.CiCd ownership template linked in the CI/CD section.
+> Never link to the agent-instruction entry points that already point here
 > (`CLAUDE.md`, `AGENTS.md`, GitHub Copilot instruction files) — those create a
-> circular reference. If a rule lives elsewhere, inline it here instead of
-> linking out.
+> circular reference. Inline other outside-folder rules here instead of linking
+> out.
 
 When opening files or folders via the command line, always pass the `-r` flag to
 open them in the current window without replacing the workspace, or pass `-n` to
@@ -291,8 +292,8 @@ produce depends on the environment:
      assembly directly with single-dash `-class` or `-method` arguments; do not rely
      on project-level `dotnet test --filter` under Microsoft.Testing.Platform.
   3. Use serialized `-m:1` Release builds for first-failure triage, adding only
-     environment pins such as `-p:NuGetAudit=false` and
-     `-p:MinVerVersionOverride=1.0.0` when needed.
+     environment pins such as `-p:MinVerVersionOverride=1.0.0` when needed.
+     Never disable or suppress dependency audits or skip tests to pass a gate.
   4. Record the exact broad-gate blocker separately from the focused evidence that
      did run, and never weaken the build gate to hide the blocker.
 - Organize tests by aggregate: `{Command}Tests.cs`, `{Event}Tests.cs`,
@@ -333,11 +334,34 @@ staging, commit, and push rules.
 
 ## CI/CD
 
-- **CI** — GitHub Actions on push/PR to `main`: restore, build (Release), run the
-  configured unit/integration suites, optional Aspire end-to-end tests.
-- **Release** — on merge to `main` via semantic-release: version from
-  Conventional Commits, test, pack, publish NuGet packages, GitHub Release,
-  update `CHANGELOG.md`.
+The canonical [Hexalith.CiCd ownership contract](https://github.com/Hexalith/Hexalith.CiCd/blob/main/templates/partials/ownership-block.txt.j2)
+defines delivered module policy. Hexalith.CiCd owns workflows, CI configuration,
+Dependabot, the Builds gitlink and its `.gitmodules` section, delivered CI/CD
+instruction blocks, and required Claude deny entries. Propose changes in CiCd;
+preserve foreign instructions and settings when applying the policy.
+
+- **CI** — GitHub Actions on pushes and PRs to `main` runs product checks:
+  compilation, tests, security and dependency scans, commit format and package
+  publishing. Module-specific product checks use custom actions enabled by
+  CiCd. Checks of CI itself, agent tooling, story evidence and workflow YAML
+  text do not belong in module CI. Do not write tests that assert workflow YAML.
+- **Release** — CiCd's central nightly process dispatches Builds and adopted
+  modules, collects their results and publishes validated ready drafts.
+  Conventional Commits determine versions. Builds supplies the shared release
+  implementation.
+- Fix product failures; report pipeline defects with the failure and run link.
+  Require a successful `python3 references/Hexalith.Builds/check.py` from the
+  module root before every push. Never weaken audits or tests or add CI skip
+  markers (including `[skip ci]` variants) or `skip-checks` commit trailers.
+- Start product branches from `origin/main` immediately after fetching current
+  `origin main`. Do not use PR Update branch until the CiCd pilot verifies its
+  permission behavior. Report refusals without switching credentials or
+  broadening access.
+- Launch Claude Code from the module root so the project-local `Edit` denies
+  protect whole-owned files and the Builds subtree. Reads remain available.
+  Keep denies out of machine-wide settings. File rules cannot target JSON keys,
+  instruction marker ranges or individual `.gitmodules` sections; instructions
+  and the shared guard protect those owned portions.
 
 ## Additional Resources
 
