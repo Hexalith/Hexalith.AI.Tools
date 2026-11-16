@@ -90,6 +90,9 @@ All commits **must** follow
 [Conventional Commits Specification](https://raw.githubusercontent.com/conventional-commits/conventionalcommits.org/refs/heads/master/content/v1.0.0/index.md) because
 semantic-release uses commit history to determine version bumps and changelogs.
 
-Write the commit message to a temporary file and validate it with commitlint
-before creating the commit.
+Write the commit message to a temporary file and validate its exact full text
+with the owning repository's documented commit validator before creating the
+commit. Preserve the successful result. Adopted modules use the released shared
+Hexalith.Builds validation; follow repository documentation for its pinned tools
+and require the normal shared checker before every push.
 

@@ -50,7 +50,7 @@ Before working in a Hexalith repository, locate, read, and follow
   Codex, Cursor, GitHub Copilot, and supported Visual Studio Copilot commit-message
   generation, must follow Conventional Commits and satisfy both the owning
   repository's effective commitlint policy and its tracked Git guidance.
-- Before presenting or using a message, an assistant capable of running repository tooling must validate the exact full candidate with the owning repository's pinned commitlint CLI and preserve successful validation evidence.
+- Before presenting or using a message, an assistant capable of running repository tooling must validate the exact full candidate with the owning repository's documented commit validator and preserve successful validation evidence.
   If validation rejects the candidate, report the rule violations, revise the message, and revalidate it; if the validator cannot run, report the exact command and blocker and do not present or use the candidate until validation succeeds. Never bypass commit validation.
 - When repository instructions are enabled, Visual Studio 2026 version 18.6 and later reads `.github/copilot-instructions.md`; older, disabled, or unsupported cases are not controlled by this file.
   These instructions guide generation but cannot execute commitlint or guarantee compliance; the installed commit-message hook and blocking CI commitlint gate remain enforcement layers.

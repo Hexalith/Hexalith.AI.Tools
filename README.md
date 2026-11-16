@@ -54,8 +54,41 @@ templates.
 
 ## Commit validation
 
-Use **Node.js 22.12.0 or later** for the pinned commitlint tools.
-Install them with `npm ci`. Before creating a commit,
-validate its exact full message with `npx --no -- commitlint --verbose` on
-standard input. `package.json` and `package-lock.json` pin the CLI and
-Conventional Commits policy; no production dependencies are installed.
+Use the integrity-locked commitlint tools and policy supplied by the released
+Hexalith.Builds pin, rather than installing validation dependencies in this
+repository. Before creating a commit, validate its exact full message with the
+shared `Github/lib/guard_tools.py` tools and preserve the successful result.
+The shared policy rejects CI skip markers and trailers as well as invalid
+Conventional Commits.
+
+After adoption, use Python 3.12 or later, Node.js 24 or later and npm. From the
+standalone module root, pass the saved message file as the argument below. The
+wrapper removes the downloaded tools when validation exits; it requires network
+access to install and verify the pinned npm tools.
+
+```bash
+run-with-temp python3 - /absolute/path/to/message.txt <<'PY'
+import os
+from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path("references/Hexalith.Builds/Github/lib").resolve()))
+from guard_tools import Tools
+
+scratch = Path(os.environ["TMPDIR"]) / "commitlint"
+scratch.mkdir()
+Tools(scratch).lint_message(Path(sys.argv[1]).read_text(encoding="utf-8"), "candidate")
+print("Commit message validation passed.")
+PY
+```
+
+After Hexalith.CiCd adoption, commit the product changes and run
+`python3 references/Hexalith.Builds/check.py` successfully before every push.
+Run it from this repository's root in a standalone clone, where Builds is a
+direct submodule at its committed pin. It checks the committed perimeter and
+commit messages; this documentation/skills repository has no .NET solution,
+product tests, packages or containers. Never initialize a nested submodule in an
+umbrella checkout to run it. Before adoption, follow the existing required gates;
+any substitute preparation proof requires an explicit, repository-specific
+approval in Hexalith.CiCd.

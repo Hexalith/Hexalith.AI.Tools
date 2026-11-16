@@ -370,9 +370,11 @@ preserve foreign instructions and settings when applying the policy.
   audits or tests or add CI skip markers (including `[skip ci]` variants) or
   `skip-checks` commit trailers.
 - Start product branches from `origin/main` immediately after fetching current
-  `origin main`. Do not use PR Update branch until the CiCd pilot verifies its
-  permission behavior. Report refusals without switching credentials or
-  broadening access.
+  `origin main`. GitHub permits PR Update branch with the restricted module
+  credential even when it imports changed workflows. Do not use it to import
+  owned CI/CD changes. Fetch current `main`, create a new product branch, and
+  reapply only product changes instead. Report refusals without switching
+  credentials or broadening access.
 - Launch Claude Code from the module root so the project-local `Edit` denies
   protect whole-owned files and the Builds subtree. Reads remain available.
   Keep denies out of machine-wide settings. File rules cannot target JSON keys,
