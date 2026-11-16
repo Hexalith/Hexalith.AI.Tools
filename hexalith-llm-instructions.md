@@ -349,10 +349,26 @@ preserve foreign instructions and settings when applying the policy.
   modules, collects their results and publishes validated ready drafts.
   Conventional Commits determine versions. Builds supplies the shared release
   implementation.
+- **Release scope** — freeze dependency revisions when a release starts; later
+  upstream advances go to the next release unless they fix a release blocker.
+- Test the affected behavior and run each repository's required CI once on the
+  exact release source. Re-run only after a source change.
+- Run full mutation testing on its schedule or after substantial changes to the
+  code it targets; it is not a per-release gate unless a release workflow
+  requires it.
+- Keep pipeline modernization (CiCd adoption, new CI steps) out of product
+  releases.
+- Produce one concise release report per release; do not commit bulk diagnostic
+  evidence.
 - Fix product failures; report pipeline defects with the failure and run link.
-  Require a successful `python3 references/Hexalith.Builds/check.py` from the
-  module root before every push. Never weaken audits or tests or add CI skip
-  markers (including `[skip ci]` variants) or `skip-checks` commit trailers.
+  In a module that has adopted Hexalith.CiCd (it commits
+  `.github/hexalith-ci.json`), require a successful
+  `python3 references/Hexalith.Builds/check.py` before every push, run from the
+  module root in a standalone clone (where Builds is a direct submodule). Until
+  a module adopts CiCd, its existing required CI gates apply. Never initialize
+  nested submodules in an umbrella workspace to run the checker. Never weaken
+  audits or tests or add CI skip markers (including `[skip ci]` variants) or
+  `skip-checks` commit trailers.
 - Start product branches from `origin/main` immediately after fetching current
   `origin main`. Do not use PR Update branch until the CiCd pilot verifies its
   permission behavior. Report refusals without switching credentials or
