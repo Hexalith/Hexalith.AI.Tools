@@ -1,0 +1,25 @@
+{
+  "browsers": false,
+  "buildProjects": [],
+  "buildsTag": "v6.1.0",
+  "ciTimeoutMinutes": 30,
+  "codeql": [],
+  "dapr": false,
+  "dotnetTools": false,
+  "hooks": [],
+  "jobs": {},
+  "moduleManifest": null,
+  "npmWorkspaces": [],
+  "publishedBuilds": null,
+  "registry": false,
+  "schema": "hexalith.ci.v1",
+  "solution": "none",
+  "submodules": [],
+  "tests": {
+    "exclude": {},
+    "failSkips": false,
+    "integration": [],
+    "minimumExpectedTests": {}
+  },
+  "windowsCheckout": null
+}

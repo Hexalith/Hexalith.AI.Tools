@@ -1,0 +1,3 @@
+[submodule "references/Hexalith.Builds"]
+	path = "references/Hexalith.Builds"
+	url = "https://github.com/Hexalith/Hexalith.Builds.git"
