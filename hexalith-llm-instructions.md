@@ -36,7 +36,7 @@ and follow it (essentials in [Git](#git) below).
 - **.NET 10+** — latest .NET framework (SDK version pinned per repo in `global.json`)
 - **C# 14+** — latest language features
 - **DAPR 1.18+** — Distributed Application Runtime for microservices
-- **.NET Aspire 13.x** — local orchestration of the distributed topology
+- **.NET Aspire 17.x** — local orchestration of the distributed topology
 - **Microsoft Fluent UI Blazor V5** — UI component library V5 for Blazor apps
 - **xUnit v3 + Shouldly + NSubstitute** — testing, assertions, mocking
 
